@@ -20,10 +20,6 @@ import java.util.List;
 class SqliteEngine {
     Context context;
     SQLiteOpenHelper dbHelper;
-    protected SqliteEngine(Context context){
-        dbHelper=DBHelper.getInstance(context);
-        this.context = context;
-    }
     protected SqliteEngine(Context context,SQLiteOpenHelper dbHelper) {
         this.context = context;
         if(dbHelper!=null){

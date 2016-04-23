@@ -11,45 +11,38 @@ import com.janyee.bladea.POJO.CacheModule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by kmlixh on 14/11/1.
  */
 public class Dao {
     SqliteEngine sqliteEngine;
-    private static Dao dao;
     private DaoInitOptions options;
     Map<String, String> versionMap;
     Context context;
 
-    private Dao(Context context) {
-        this.context = context;
-        options = DaoInitOptions.getInstance();
-        sqliteEngine = new SqliteEngine(context);
-    }
-
-    private Dao(Context context, DaoInitOptions options, Class... classes) throws Exception {
+    private Dao(Context context, DaoInitOptions options, Class... classes){
         this.context = context;
         this.options = options;
-        if (options.dbHelper != null) {
+        if(options!=null){
             sqliteEngine = new SqliteEngine(context, options.dbHelper);
-        } else {
-            sqliteEngine = new SqliteEngine(context);
+        }else{
+            sqliteEngine=new SqliteEngine(context,null);
         }
-        init(classes);
+        try{
+            init(classes);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public static Dao getInstance(Context context) {
-
-        if (dao == null) {
-            dao = new Dao(context);
-        }
-        return dao;
+        return new Dao(context,null,null);
     }
 
     public static Dao getInstance(Context context, DaoInitOptions options, Class... classes) throws Exception {
-        dao = new Dao(context, options, classes);
-        return dao;
+       return new Dao(context, options, classes);
     }
 
     public void preCachingClass(Class... classes) throws Exception {

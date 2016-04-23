@@ -15,17 +15,7 @@ public class DaoUnitTest extends AndroidTestCase {
 
     @Test
     public void testSave1() throws Exception {
-        Sort sort=new Sort();
-        sort.setSort_id("sdfasdfas");
-        sort.setSort_name("测试分类");
-        Video video=new Video();
-        video.setId(234324);
-        video.setVideo_length(23424);
-        video.setVideo_name("dsff324sdfsdf");
-        video.setSortId("sdfasdfas");
-        video.setVideoUrl("sdfasfasfsadfsadfs");
-        Dao.getInstance(getContext()).save(sort);
-        Dao.getInstance(getContext()).save(video);
+        Dao.getInstance(getContext());
 
     }
 
