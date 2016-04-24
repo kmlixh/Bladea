@@ -4,8 +4,8 @@ package com.janyee.bladea.Dao;
  * Created by kmlixh on 2016/1/14.
  */
 public class DaoInitOptions {
-    boolean autoUpdateTableStructure=true;
-    DBHelper dbHelper;
+    private boolean autoUpdateTableStructure=true;
+    private DBHelper dbHelper;
     private DaoInitOptions() {
 
     }

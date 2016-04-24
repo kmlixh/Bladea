@@ -17,16 +17,16 @@ import java.util.concurrent.ExecutionException;
  * Created by kmlixh on 14/11/1.
  */
 public class Dao {
-    SqliteEngine sqliteEngine;
+    private SqliteEngine sqliteEngine;
     private DaoInitOptions options;
-    Map<String, String> versionMap;
-    Context context;
+    private Map<String, String> versionMap;
+    private Context context;
 
     private Dao(Context context, DaoInitOptions options, Class... classes){
         this.context = context;
         this.options = options;
         if(options!=null){
-            sqliteEngine = new SqliteEngine(context, options.dbHelper);
+            sqliteEngine = new SqliteEngine(context, options.getDbHelper());
         }else{
             sqliteEngine=new SqliteEngine(context,null);
         }
@@ -69,7 +69,7 @@ public class Dao {
             TableModule module = SqlFactory.getTableModule(classz);
             if (!classz.equals(TableVersion.class) && !classz.equals(CacheModule.class)) {
                 if (sqliteEngine.checkTableExsist(module.getBoundClass())) {
-                    if (versionMap.get(module.getTableName()) != null && !versionMap.get(module.getTableName()).equals(module.getMd5()) && options.autoUpdateTableStructure) {
+                    if (versionMap.get(module.getTableName()) != null && !versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {
                         List info = query(module.getBoundClass(), false);
                         dropTable(module.getTableName());
                         create(module.getBoundClass());
