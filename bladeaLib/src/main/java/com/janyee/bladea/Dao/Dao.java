@@ -11,8 +11,6 @@ import com.janyee.bladea.POJO.CacheModule;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by kmlixh on 14/11/1.
