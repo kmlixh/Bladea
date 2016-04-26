@@ -171,6 +171,7 @@ public  class TableModule<T> {
     }
     public T bindValue(Cursor cursor) throws Exception {
         T obj=  boundClass.newInstance();
+        primaryCell.bindField(obj,cursor);
         if (getCellMap().size() > 0) {
             for (String key : getCellMap().keySet()) {
                 CellModule tt=getCellMap().get(key);
@@ -184,6 +185,7 @@ public  class TableModule<T> {
     public String getMd5(){
         if(md5==null){
             StringBuilder stringBuilder=new StringBuilder();
+            stringBuilder.append(primaryCell.toString()+",");
             for(CellModule m:cellMap.values()){
                 stringBuilder.append(m.toString()+",");
             }

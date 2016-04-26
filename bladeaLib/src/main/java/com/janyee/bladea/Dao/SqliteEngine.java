@@ -45,6 +45,22 @@ class SqliteEngine {
         }
         return result;
     }
+    protected long Count(StringBuilder sql){
+        return Count(dbHelper,sql);
+    }
+    protected long Count(SQLiteOpenHelper dbHelper,StringBuilder sql) {
+        long result = 0;
+        try {
+            SQLiteDatabase database=dbHelper.getWritableDatabase();
+            SQLiteStatement statement = database.compileStatement(sql.toString());
+            result =  statement.simpleQueryForLong();
+        } catch (Exception e) {
+            throw new DaoException(e.getMessage());
+        }finally {
+            dbHelper.close();
+        }
+        return result;
+    }
     protected int TransactionMerge(List<StringBuilder> sqls){
         return TransactionMerge(dbHelper,sqls);
     }

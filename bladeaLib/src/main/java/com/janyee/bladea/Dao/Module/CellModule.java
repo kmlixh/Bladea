@@ -138,7 +138,7 @@ public class CellModule {
     }
     @Override
     public String toString(){
-        return getCellName()+":"+getBoundField().getType().getCanonicalName()+","+dataType.name()+","+length+","+unique!=null?"unique":""+","+notNull!=null?"notnull":""+","+onConflict!=null?onConflict.value().name():"";
+        return getCellName()+":"+getBoundField().getType().getCanonicalName()+","+dataType.name()+","+length+","+(unique!=null?"unique":"")+","+(notNull!=null?"notnull":"")+","+(onConflict!=null?onConflict.value().name():"");
     }
 
 }

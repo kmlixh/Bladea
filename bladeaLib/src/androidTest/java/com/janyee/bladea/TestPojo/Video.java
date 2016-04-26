@@ -15,10 +15,12 @@ public class Video {
     String video_name;
     @Column("video_url")
     String videoUrl;
-    @Column("sort_id")
+    @Column("sort_sdfasdfsadfsdf")
     String sortId;
     @Column
     int video_length;
+    @Column
+    String testInfo;
 
     public int getId() {
         return id;
@@ -58,5 +60,13 @@ public class Video {
 
     public void setSortId(String sortId) {
         this.sortId = sortId;
+    }
+
+    public String getTestInfo() {
+        return testInfo;
+    }
+
+    public void setTestInfo(String testInfo) {
+        this.testInfo = testInfo;
     }
 }

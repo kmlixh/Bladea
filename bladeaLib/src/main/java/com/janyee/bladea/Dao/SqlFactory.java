@@ -16,6 +16,7 @@ import java.util.Map;
 public class SqlFactory {
     static Map<Class, TableModule> tableMap = null;
     static Map<String, TableModule> tableMap2 = null;
+    public static Map<String, String> versionMap;
 
     public static Map<Class, TableModule> getTableMap() {
         return tableMap;
@@ -82,6 +83,19 @@ public class SqlFactory {
         stringBuilder.append(";");
         return stringBuilder;
 
+    }
+    protected static StringBuilder getCount(String tableName,Condition condition) throws  Exception{
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("SELECT count(*) FROM ").append("["+tableName+"]");
+        if (condition != null) {
+            stringBuilder.append(condition.toString());
+        }
+        stringBuilder.append(";");
+        return stringBuilder;
+    }
+    protected static <T> StringBuilder getCount(Class<T> tClass, Condition condition) throws Exception {
+        TableModule tableModule = getTableModule(tClass);
+        return getCount(tableModule.getTableName(),condition);
     }
 
     protected static <T> StringBuilder getFetch(Class<T> tClass, Condition condition) throws Exception {

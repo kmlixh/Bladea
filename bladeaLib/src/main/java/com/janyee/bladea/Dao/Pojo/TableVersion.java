@@ -10,23 +10,23 @@ import com.janyee.bladea.Dao.annotation.Table;
 @Table(value="tableVersion")
 public class TableVersion {
     @ID
-    String table;
+    String tabs;
     @Column
-    String version;
+    String vers;
 
-    public String getTable() {
-        return table;
+    public String getTabs() {
+        return tabs;
     }
 
-    public void setTable(String table) {
-        this.table = table;
+    public void setTabs(String tabs) {
+        this.tabs = tabs;
     }
 
-    public String getVersion() {
-        return version;
+    public String getVers() {
+        return vers;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    public void setVers(String vers) {
+        this.vers = vers;
     }
 }

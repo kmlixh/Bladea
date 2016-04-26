@@ -1,5 +1,8 @@
 package com.janyee.bladea.Dao;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.test.AndroidTestCase;
 
 import com.janyee.bladea.TestPojo.SubVideo;
@@ -7,6 +10,9 @@ import com.janyee.bladea.TestPojo.UserInfo;
 import com.janyee.bladea.TestPojo.Video;
 
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -16,31 +22,32 @@ import static org.junit.Assert.*;
 public class DaoTest extends AndroidTestCase {
 
     @Test
-    public void testGetInstance() throws Exception {
-        Dao.getInstance(getContext());
-    }
-
-    @Test
-    public void testGetInstance1() throws Exception {
-        DaoInitOptions options=DaoInitOptions.getInstance();
-        options.setAutoUpdateTableStructure(true);
-        Dao.getInstance(getContext(),options, Video.class, SubVideo.class, UserInfo.class);
-    }
-
-    @Test
-    public void testPreCachingClass() throws Exception {
-        Dao dao=Dao.getInstance(getContext());
-        dao.preCachingClass(Video.class,SubVideo.class);
-    }
-
-    @Test
     public void testQuery() throws Exception {
-
+        List<Video> videoList=new ArrayList<>();
+        for(int i=0;i<20;i++){
+            Video video=new Video();
+            video.setId(i);
+            video.setVideo_length(i+2);
+            video.setVideoUrl("sdfasdfsadff"+i);
+            video.setSortId("sdfas2dfdf");
+            video.setVideo_name("sdfasdf2wefsdf");
+            video.setTestInfo("sdfasdfasdfasdf234"+i);
+            videoList.add(video);
+        }
+        Dao dao=Dao.getInstance(getContext());
+        dao.save(videoList);
+        assertEquals(dao.count(Video.class),20);
     }
 
     @Test
     public void testQuery1() throws Exception {
-
+        SQLiteDatabase database=DBHelper.getInstance(getContext()).getWritableDatabase();
+        StringBuilder stringBuilder=new StringBuilder("select count(*) from sqlite_master where type='table' and name ='video_info'");
+        Cursor cursor=database.rawQuery(stringBuilder.toString(),new String[]{});
+        if(cursor.getCount()>0){
+            String info=cursor.getString(2);
+            assertEquals(info,"");
+        }
     }
 
     @Test
