@@ -26,6 +26,8 @@ public class DaoCastor {
             result = "'" + obj + "'";
         } else if(Castor.isNumberic(obj)) {
             result = String.valueOf(obj);
+        }else if(obj.getClass().equals(boolean.class)){
+            result=((boolean)obj)?"1":"0";
         }
         return result;
     }

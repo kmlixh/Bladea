@@ -42,9 +42,9 @@ public class DaoTest extends AndroidTestCase {
     @Test
     public void testQuery1() throws Exception {
         SQLiteDatabase database=DBHelper.getInstance(getContext()).getWritableDatabase();
-        StringBuilder stringBuilder=new StringBuilder("select count(*) from sqlite_master where type='table' and name ='video_info'");
+        StringBuilder stringBuilder=new StringBuilder("select * from sqlite_master where type='table' and name ='video_info'");
         Cursor cursor=database.rawQuery(stringBuilder.toString(),new String[]{});
-        if(cursor.getCount()>0){
+        if(cursor.moveToNext()&&cursor.getCount()>0){
             String info=cursor.getString(2);
             assertEquals(info,"");
         }

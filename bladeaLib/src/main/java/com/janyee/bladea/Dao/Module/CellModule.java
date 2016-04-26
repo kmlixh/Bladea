@@ -17,7 +17,6 @@ import java.lang.reflect.InvocationTargetException;
  * Created by �˻� on 2015/8/27.
  */
 public class CellModule {
-
     Field boundField;
     IDataParser parser;
     SqlDataType dataType;
@@ -48,6 +47,9 @@ public class CellModule {
             length=column.length();
         }else{
             throw new DaoException("no column or id find  for this column!");
+        }
+        if(!dataType.verifyClass(boundField.getType())){
+            throw new DaoException("Data Type Error!");
         }
         unique=boundField.getAnnotation(Unique.class);
         notNull=boundField.getAnnotation(NotNull.class);
