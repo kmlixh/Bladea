@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Created by Administrator on 2014/11/24.
+ * Created by kmlixh on 2014/11/24.
  */
 public enum SqlDataType {
     INT(int.class), FLOAT(float.class), DOUBLE(double.class), TEXT(String.class), SMALLINI(short.class), BIGINT(long.class), TINYINT(byte.class,char.class), DATETIME(Date.class, Calendar.class),BLOB(byte[].class),NVARCHAR(String.class),CHAR(String.class),VARCHAR(String.class),NCHAR(String.class),MONEY(BigDecimal.class),  BOOLEAN(boolean.class,int.class,byte.class),AUTO(Object.class);
