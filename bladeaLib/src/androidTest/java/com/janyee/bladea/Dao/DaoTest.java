@@ -78,6 +78,8 @@ public class DaoTest extends AndroidTestCase {
     @Test
     public void testInsert1() throws Exception {
 
+
+
     }
 
     @Test
