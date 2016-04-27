@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.janyee.bladea.Dao.Condition.Condition;
 import com.janyee.bladea.Dao.Module.TableModule;
 import com.janyee.bladea.Dao.Pojo.TableVersion;
-import com.janyee.bladea.POJO.CacheModule;
+import com.janyee.bladea.Dao.Cache.CacheInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,7 +70,7 @@ public class Dao {
             return;
         }
         for (Class classz : classes) {
-            if (!classz.equals(TableVersion.class) && !classz.equals(CacheModule.class)) {
+            if (!classz.equals(TableVersion.class) && !classz.equals(CacheInfo.class)) {
                 TableModule module = SqlFactory.getTableModule(classz);
                 if (sqliteEngine.checkTableExsist(module.getBoundClass())) {
                     if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {

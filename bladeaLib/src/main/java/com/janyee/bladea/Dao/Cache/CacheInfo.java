@@ -1,4 +1,4 @@
-package com.janyee.bladea.POJO;
+package com.janyee.bladea.Dao.Cache;
 
 import com.janyee.bladea.Dao.SqlDataType;
 import com.janyee.bladea.Dao.annotation.Column;
@@ -7,7 +7,7 @@ import com.janyee.bladea.Dao.annotation.ID;
 /**
  * Created by kmlixh on 2016/4/22.
  */
-public class CacheModule {
+public class CacheInfo {
     @ID("cache_id")
     String cacheId;
     @Column(type = SqlDataType.BLOB)

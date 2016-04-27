@@ -77,7 +77,6 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
-
     public static DBHelper getConfigInstance(Context context){
         if (instanceConfig == null) {
             instanceConfig = new DBHelper(context,getConfigDbName(context));
@@ -85,8 +84,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return instanceConfig;
     }
 
-    @SuppressLint("SdCardPath")
-    public static DBHelper getInstanceFromAssets(String fileName, Context context, boolean delExsit) {
+    public static DBHelper initInstanceFromAssets(String fileName, Context context, boolean delExsit) {
         String aa = context.getDatabasePath(getDbName(context)).getPath();
         File ff = new File(aa);
         if (delExsit && ff.exists()) {
@@ -123,8 +121,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return DBHelper.getInstance(context);
     }
 
-    @SuppressLint("SdCardPath")
-    public static DBHelper getInstanceFromRaw(int resourceId, Context context, boolean delExsit) {
+    public static DBHelper initInstanceFromRaw(int resourceId, Context context, boolean delExsit) {
         String aa = context.getDatabasePath(getDbName(context)).getPath();
         File ff = new File(aa);
         if (delExsit && ff.exists()) {
@@ -160,7 +157,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return DBHelper.getInstance(context);
     }
 
-    public static DBHelper getInstanceFromSdCard(String path, Context context, boolean delExsit) {
+    public static DBHelper initInstanceFromSdCard(String path, Context context, boolean delExsit) {
         String aa = context.getDatabasePath(getDbName(context)).getPath();
         File fs = new File(path);
         File ff = new File(aa);

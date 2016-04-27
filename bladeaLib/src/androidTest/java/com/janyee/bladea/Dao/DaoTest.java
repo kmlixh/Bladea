@@ -1,5 +1,6 @@
 package com.janyee.bladea.Dao;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
@@ -23,31 +24,14 @@ public class DaoTest extends AndroidTestCase {
 
     @Test
     public void testQuery() throws Exception {
-        List<Video> videoList=new ArrayList<>();
-        for(int i=0;i<20;i++){
-            Video video=new Video();
-            video.setId(i);
-            video.setVideo_length(i+2);
-            video.setVideoUrl("sdfasdfsadff"+i);
-            video.setSortId("sdfas2dfdf");
-            video.setVideo_name("sdfasdf2wefsdf");
-            video.setTestInfo("sdfasdfasdfasdf234"+i);
-            videoList.add(video);
-        }
-        Dao dao=Dao.getInstance(getContext());
-        dao.save(videoList);
-        assertEquals(dao.count(Video.class),20);
+
     }
 
     @Test
     public void testQuery1() throws Exception {
-        SQLiteDatabase database=DBHelper.getInstance(getContext()).getWritableDatabase();
-        StringBuilder stringBuilder=new StringBuilder("select * from sqlite_master where type='table' and name ='video_info'");
-        Cursor cursor=database.rawQuery(stringBuilder.toString(),new String[]{});
-        if(cursor.moveToNext()&&cursor.getCount()>0){
-            String info=cursor.getString(2);
-            assertEquals(info,"");
-        }
+        Context context=getContext();
+        List<Video> videos=new ArrayList<>();
+        assertEquals(videos.getClass().getCanonicalName(),"");
     }
 
     @Test
