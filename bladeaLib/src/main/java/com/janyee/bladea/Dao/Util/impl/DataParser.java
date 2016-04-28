@@ -48,6 +48,10 @@ public class DataParser extends IDataParser<Object> {
                 DataTuple tuple = new DataTuple(byte.class, cursor.getInt(index));
                 return tuple;
             }
+            if(cellModule.getBoundField().getType().equals(byte[].class)&&cursor.getType(index)==Cursor.FIELD_TYPE_BLOB){
+                DataTuple tuple=new DataTuple(byte[].class,cursor.getBlob(index));
+                return tuple;
+            }
             if (cellModule.getBoundField().getType().equals(Date.class)) {
                 if (cursor.getType(index) == Cursor.FIELD_TYPE_STRING) {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyy-MM-dd HH:mm:ss");
@@ -77,9 +81,15 @@ public class DataParser extends IDataParser<Object> {
                 }
 
             }
-            if (cellModule.getBoundField().getType().equals(byte[].class) && cursor.getType(index) == Cursor.FIELD_TYPE_BLOB) {
-                DataTuple tuple = new DataTuple(byte[].class, cursor.getBlob(index));
-                return tuple;
+            if (cellModule.getBoundField().getType().equals(byte[].class) ) {
+                if(cursor.getType(index) == Cursor.FIELD_TYPE_BLOB){
+                    DataTuple tuple = new DataTuple(byte[].class, cursor.getBlob(index));
+                    return tuple;
+                }else if(cursor.getType(index) == Cursor.FIELD_TYPE_STRING){
+                    DataTuple tuple=new DataTuple(byte[].class,cursor.getString(index).getBytes("utf-8"));
+                    return tuple;
+                }
+
             }
             throw new DaoException("can't bind value with name '" + cellName + "'");
         } else {

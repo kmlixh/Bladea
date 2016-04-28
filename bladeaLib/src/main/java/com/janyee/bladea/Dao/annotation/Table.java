@@ -1,5 +1,8 @@
 package com.janyee.bladea.Dao.annotation;
 
+import com.janyee.bladea.Dao.Factory.DataOpenHelperFactory;
+import com.janyee.bladea.Dao.Factory.extds.DefaultDOHelperFactory;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -16,4 +19,5 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Table {
     String value();
+    Class<? extends DataOpenHelperFactory> factory() default DefaultDOHelperFactory.class;
 }

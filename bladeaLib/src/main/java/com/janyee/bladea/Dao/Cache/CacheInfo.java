@@ -3,10 +3,12 @@ package com.janyee.bladea.Dao.Cache;
 import com.janyee.bladea.Dao.SqlDataType;
 import com.janyee.bladea.Dao.annotation.Column;
 import com.janyee.bladea.Dao.annotation.ID;
+import com.janyee.bladea.Dao.annotation.Table;
 
 /**
  * Created by kmlixh on 2016/4/22.
  */
+@Table("cache_info")
 public class CacheInfo {
     @ID("cache_id")
     String cacheId;

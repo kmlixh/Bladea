@@ -28,10 +28,13 @@ public class DaoCastor {
             result = String.valueOf(obj);
         }else if(obj.getClass().equals(boolean.class)){
             result=((boolean)obj)?"1":"0";
+        }else if(obj.getClass().equals(byte[].class)){
+            result="'"+new String(((byte[])obj))+"'";
+        }else if(obj instanceof String ||obj.getClass().equals(int.class)||obj.getClass().equals(float.class)||obj.getClass().equals(Float.class)){
+            result="'"+String.valueOf(obj)+"'";
         }
         return result;
     }
-
     public static String ArrayToString(Object[] objects) {
         if (objects != null && objects.length > 0) {
             StringBuilder stringBuilder = new StringBuilder();

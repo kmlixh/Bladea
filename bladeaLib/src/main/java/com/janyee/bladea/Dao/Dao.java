@@ -70,7 +70,7 @@ public class Dao {
             return;
         }
         for (Class classz : classes) {
-            if (!classz.equals(TableVersion.class) && !classz.equals(CacheInfo.class)) {
+            if (!classz.equals(TableVersion.class) ) {
                 TableModule module = SqlFactory.getTableModule(classz);
                 if (sqliteEngine.checkTableExsist(module.getBoundClass())) {
                     if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {

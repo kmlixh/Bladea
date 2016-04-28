@@ -48,17 +48,19 @@ public class CellModule {
         }else{
             throw new DaoException("no column or id find  for this column!");
         }
-        if(!dataType.verifyClass(boundField.getType())){
-            throw new DaoException("Data Type Error!");
-        }
+
         unique=boundField.getAnnotation(Unique.class);
         notNull=boundField.getAnnotation(NotNull.class);
         onConflict=boundField.getAnnotation(OnConflict.class);
         if (parser == null) {
             parser = new DataParser();
         }
-        if(!(parser instanceof DataParser)||dataType==SqlDataType.AUTO){
+        if(dataType==SqlDataType.AUTO){
             dataType = parser.getDataType(boundField);
+        }else{//检查数据类型匹配关系
+            if(!dataType.verifyClass(boundField.getType())){
+                throw new DaoException("Invalid Data type! we can not convert '"+dataType.name()+"' to '"+boundField.getType().getCanonicalName()+"'");
+            }
         }
     }
 
