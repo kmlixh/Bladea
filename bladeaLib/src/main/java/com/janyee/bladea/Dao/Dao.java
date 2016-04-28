@@ -27,19 +27,16 @@ public class Dao {
         } else {
             this.options = DaoInitOptions.getInstance();
         }
-        if (options != null) {
-            sqliteEngine = new SqliteEngine(context, options.getDbHelper());
-        } else {
-            sqliteEngine = new SqliteEngine(context, null);
-        }
+        sqliteEngine = new SqliteEngine(context);
+
 
         try {
-            if (!sqliteEngine.checkTableExsist(DBHelper.getConfigInstance(context), TableVersion.class)) {
-                create(DBHelper.getConfigInstance(context), TableVersion.class);
+            if (!sqliteEngine.checkTableExsist(SqlFactory.getTableModule(TableVersion.class))) {
+                create( TableVersion.class);
             }
             if (SqlFactory.versionMap == null || SqlFactory.versionMap.size() == 0) {
                 SqlFactory.versionMap = new HashMap<>();
-                List<TableVersion> tableVersionList = query(DBHelper.getConfigInstance(context), TableVersion.class, false);
+                List<TableVersion> tableVersionList = query(TableVersion.class, false);
                 if (tableVersionList.size() > 0) {
                     for (TableVersion version : tableVersionList) {
                         SqlFactory.versionMap.put(version.getTabs(), version.getVers());
@@ -72,10 +69,10 @@ public class Dao {
         for (Class classz : classes) {
             if (!classz.equals(TableVersion.class) ) {
                 TableModule module = SqlFactory.getTableModule(classz);
-                if (sqliteEngine.checkTableExsist(module.getBoundClass())) {
+                if (sqliteEngine.checkTableExsist(module)) {
                     if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {
-                        List info = sqliteEngine.query(classz, SqlFactory.getQuery(classz), false);
-                        dropTable(module.getTableName());
+                        List info = sqliteEngine.query(module, SqlFactory.getQuery(classz), false);
+                        dropTable(classz);
                         create(module.getBoundClass());
                         save(info);
 
@@ -83,67 +80,37 @@ public class Dao {
                         TableVersion version = new TableVersion();
                         version.setVers(module.getMd5());
                         version.setTabs(module.getTableName());
-                        save(DBHelper.getConfigInstance(context), version);
+                        save(version);
                     }
                 } else {
                     create(module.getBoundClass());
                     TableVersion version = new TableVersion();
                     version.setTabs(module.getTableName());
                     version.setVers(module.getMd5());
-                    save(DBHelper.getConfigInstance(context), version);
+                    save(version);
                 }
                 SqlFactory.versionMap.put(module.getTableName(), module.getMd5());
             }
 
         }
     }
-    public long count(String tableName,Condition condition) throws Exception {
-        return sqliteEngine.Count(SqlFactory.getCount(tableName,condition));
+    public long count(TableModule module,Condition condition) throws Exception {
+        return sqliteEngine.Count(module,condition);
     }
     public <T> long count(Class<T> tClass) throws Exception {
-        StringBuilder sb = SqlFactory.getCount(tClass, null);
-        return sqliteEngine.Count(sb);
+        return sqliteEngine.Count(SqlFactory.getTableModule(tClass),null);
     }
 
     public <T> long count(Class<T> tClass, Condition condition) throws Exception {
-        StringBuilder sb = SqlFactory.getCount(tClass, condition);
-        return sqliteEngine.Count(sb);
+        return sqliteEngine.Count(SqlFactory.getTableModule(tClass),condition);
     }
 
-    public <T> long count(SQLiteOpenHelper helper, Class<T> tClass, Condition condition) throws Exception {
-        StringBuilder sb = SqlFactory.getCount(tClass, condition);
-        return sqliteEngine.Count(helper, sb);
-    }
 
-    public <T> long count(SQLiteOpenHelper helper, Class<T> tClass) throws Exception {
-        StringBuilder sb = SqlFactory.getCount(tClass, null);
-        return sqliteEngine.Count(helper, sb);
-    }
-
-    public <T> List<T> query(SQLiteOpenHelper helper, Class<T> tClass, Condition condition, boolean queryLink) throws Exception {
-        if (sqliteEngine.checkTableExsist(helper, tClass)) {
-            StringBuilder sb = SqlFactory.getQuery(tClass, condition);
-            return sqliteEngine.query(helper, tClass, sb, queryLink);
-        } else {
-            create(tClass);
-            return new ArrayList<>();
-        }
-    }
 
     public <T> List<T> query(Class<T> tClass, Condition condition, boolean queryLink) throws Exception {
-        if (sqliteEngine.checkTableExsist(tClass)) {
+        if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
             StringBuilder sb = SqlFactory.getQuery(tClass, condition);
-            return sqliteEngine.query(tClass, sb, queryLink);
-        } else {
-            create(tClass);
-            return new ArrayList<>();
-        }
-    }
-
-    public <T> List<T> query(SQLiteOpenHelper helper, Class<T> tClass, boolean queryLink) throws Exception {
-        if (sqliteEngine.checkTableExsist(helper, tClass)) {
-            StringBuilder sb = SqlFactory.getQuery(tClass);
-            return sqliteEngine.query(helper, tClass, sb, queryLink);
+            return sqliteEngine.query(SqlFactory.getTableModule(tClass), sb, queryLink);
         } else {
             create(tClass);
             return new ArrayList<>();
@@ -151,9 +118,9 @@ public class Dao {
     }
 
     public <T> List<T> query(Class<T> tClass, boolean queryLink) throws Exception {
-        if (sqliteEngine.checkTableExsist(tClass)) {
+        if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
             StringBuilder sb = SqlFactory.getQuery(tClass);
-            return sqliteEngine.query(tClass, sb, queryLink);
+            return sqliteEngine.query(SqlFactory.getTableModule(tClass), sb, queryLink);
         } else {
             create(tClass);
             return new ArrayList<>();
@@ -161,24 +128,9 @@ public class Dao {
     }
 
     public <T> T fetch(Class<T> tClass, Condition condition, boolean queryLink) throws Exception {
-        if (sqliteEngine.checkTableExsist(tClass)) {
+        if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
             StringBuilder sb = SqlFactory.getQuery(tClass, condition);
-            List<T> tList = sqliteEngine.query(tClass, sb, queryLink);
-            if (tList.size() > 0) {
-                return tList.get(0);
-            } else {
-                return null;
-            }
-        } else {
-            create(tClass);
-            return null;
-        }
-    }
-
-    public <T> T fetch(SQLiteOpenHelper helper, Class<T> tClass, Condition condition, boolean queryLink) throws Exception {
-        if (sqliteEngine.checkTableExsist(tClass)) {
-            StringBuilder sb = SqlFactory.getQuery(tClass, condition);
-            List<T> tList = sqliteEngine.query(helper,tClass, sb, queryLink);
+            List<T> tList = sqliteEngine.query(SqlFactory.getTableModule(tClass), sb, queryLink);
             if (tList.size() > 0) {
                 return tList.get(0);
             } else {
@@ -194,17 +146,7 @@ public class Dao {
         if (t != null) {
             init(t.getClass());
             StringBuilder sb = SqlFactory.getInsert(t);
-            return sqliteEngine.Merge(sb);
-        } else {
-            return 0;
-        }
-    }
-
-    public <T> int insert(SQLiteOpenHelper helper, T t) throws Exception {
-        if (t != null) {
-            init(t.getClass());
-            StringBuilder sb = SqlFactory.getInsert(t);
-            return sqliteEngine.Merge(helper, sb);
+            return sqliteEngine.Merge(SqlFactory.getTableModule(t.getClass()),sb);
         } else {
             return 0;
         }
@@ -214,17 +156,7 @@ public class Dao {
         if (ts != null && ts.length > 0) {
             init(ts[0].getClass());
             List<StringBuilder> stringBuilders = SqlFactory.getInsert(ts);
-            return sqliteEngine.TransactionMerge(stringBuilders);
-        } else {
-            return 0;
-        }
-    }
-
-    public <T> int insert(SQLiteOpenHelper helper, T[] ts) throws Exception {
-        if (ts != null && ts.length > 0) {
-            init(ts[0].getClass());
-            List<StringBuilder> stringBuilders = SqlFactory.getInsert(ts);
-            return sqliteEngine.TransactionMerge(helper, stringBuilders);
+            return sqliteEngine.TransactionMerge(SqlFactory.getTableModule(ts[0].getClass()),stringBuilders);
         } else {
             return 0;
         }
@@ -234,37 +166,18 @@ public class Dao {
         if (ts != null && ts.size() > 0) {
             init(ts.get(0).getClass());
             List<StringBuilder> stringBuilders = SqlFactory.getInsert(ts);
-            return sqliteEngine.TransactionMerge(stringBuilders);
+            return sqliteEngine.TransactionMerge(SqlFactory.getTableModule(ts.get(0).getClass()),stringBuilders);
         } else {
             return 0;
         }
     }
 
-    public <T> int insert(SQLiteOpenHelper helper, List<T> ts) throws Exception {
-        if (ts != null && ts.size() > 0) {
-            init(ts.get(0).getClass());
-            List<StringBuilder> stringBuilders = SqlFactory.getInsert(ts);
-            return sqliteEngine.TransactionMerge(helper, stringBuilders);
-        } else {
-            return 0;
-        }
-    }
 
     public <T> int save(T t) throws Exception {
         if (t != null) {
             init(t.getClass());
             StringBuilder sb = SqlFactory.getSave(t);
-            return sqliteEngine.Merge(sb);
-        } else {
-            return 0;
-        }
-    }
-
-    public <T> int save(SQLiteOpenHelper helper, T t) throws Exception {
-        if (t != null) {
-            init(t.getClass());
-            StringBuilder sb = SqlFactory.getSave(t);
-            return sqliteEngine.Merge(helper, sb);
+            return sqliteEngine.Merge(SqlFactory.getTableModule(t.getClass()),sb);
         } else {
             return 0;
         }
@@ -274,17 +187,7 @@ public class Dao {
         if (tList != null && tList.size() > 0) {
             init(tList.get(0).getClass());
             List<StringBuilder> builders = SqlFactory.getSave(tList.toArray());
-            return sqliteEngine.TransactionMerge(builders);
-        } else {
-            return 0;
-        }
-    }
-
-    public <T> int save(SQLiteOpenHelper helper, List<T> tList) throws Exception {
-        if (tList != null && tList.size() > 0) {
-            init(tList.get(0).getClass());
-            List<StringBuilder> builders = SqlFactory.getSave(tList.toArray());
-            return sqliteEngine.TransactionMerge(helper, builders);
+            return sqliteEngine.TransactionMerge(SqlFactory.getTableModule(tList.get(0).getClass()),builders);
         } else {
             return 0;
         }
@@ -294,59 +197,29 @@ public class Dao {
         if (ts != null && ts.length > 0) {
             init(ts[0].getClass());
             List<StringBuilder> builders = SqlFactory.getSave(ts);
-            return sqliteEngine.TransactionMerge(builders);
+            return sqliteEngine.TransactionMerge(SqlFactory.getTableModule(ts[0].getClass()),builders);
         } else {
             return 0;
         }
-    }
-
-    public <T> int save(SQLiteOpenHelper helper, T[] ts) throws Exception {
-        if (ts != null && ts.length > 0) {
-            init(ts[0].getClass());
-            List<StringBuilder> builders = SqlFactory.getSave(ts);
-            return sqliteEngine.TransactionMerge(helper, builders);
-        } else {
-            return 0;
-        }
-
     }
 
     public <T> int delete(Class<T> tClass, Condition condition) throws Exception {
         init(tClass);
         StringBuilder sb = SqlFactory.getDelete(tClass, condition);
-        return sqliteEngine.Merge(sb);
-    }
-
-    public <T> int delete(SQLiteOpenHelper helper, Class<T> tClass, Condition condition) throws Exception {
-        init(tClass);
-        StringBuilder sb = SqlFactory.getDelete(tClass, condition);
-        return sqliteEngine.Merge(helper, sb);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(tClass),sb);
     }
 
     public <T> int delete(Class<T> tClass) throws Exception {
         init(tClass);
         StringBuilder sb = SqlFactory.getDelete(tClass);
-        return sqliteEngine.Merge(sb);
-    }
-
-    public <T> int delete(SQLiteOpenHelper helper, Class<T> tClass) throws Exception {
-        init(tClass);
-        StringBuilder sb = SqlFactory.getDelete(tClass);
-        return sqliteEngine.Merge(helper, sb);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(tClass),sb);
     }
 
     public <T> int delete(T t) throws Exception {
         init(t.getClass());
         StringBuilder sb = SqlFactory.getDelete(t);
-        return sqliteEngine.Merge(sb);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(t.getClass()),sb);
     }
-
-    public <T> int delete(SQLiteOpenHelper helper, T t) throws Exception {
-        init(t.getClass());
-        StringBuilder sb = SqlFactory.getDelete(t);
-        return sqliteEngine.Merge(helper, sb);
-    }
-
     public <T> int delete(List<T> tList) throws Exception {
         if (tList != null && tList.size() > 0) {
             init(tList.get(0).getClass());
@@ -357,74 +230,33 @@ public class Dao {
         }
     }
 
-    public <T> int delete(SQLiteOpenHelper helper, List<T> tList) throws Exception {
-        if (tList != null && tList.size() > 0) {
-            init(tList.get(0).getClass());
-            T[] builders = (T[]) tList.toArray();
-            return delete(helper, builders);
-        } else {
-            return 0;
-        }
-    }
 
     public <T> int delete(T[] tList) throws Exception {
         if (tList != null && tList.length > 0) {
             init(tList[0].getClass());
             List<StringBuilder> moduleList = SqlFactory.getDelete(tList);
-            return sqliteEngine.TransactionMerge(moduleList);
+            return sqliteEngine.TransactionMerge(SqlFactory.getTableModule(tList[0].getClass()),moduleList);
         } else {
             return 0;
         }
-    }
-
-    public <T> int delete(SQLiteOpenHelper helper, T[] tList) throws Exception {
-        if (tList != null && tList.length > 0) {
-            init(tList[0].getClass());
-            List<StringBuilder> moduleList = SqlFactory.getDelete(tList);
-            return sqliteEngine.TransactionMerge(helper, moduleList);
-        } else {
-            return 0;
-        }
-    }
-
-    public int dropTable(String tableName) throws Exception {
-        StringBuilder sql = SqlFactory.getDrop(tableName);
-        return sqliteEngine.Merge(sql);
-    }
-
-    public int dropTable(SQLiteOpenHelper helper, String tableName) throws Exception {
-        StringBuilder sql = SqlFactory.getDrop(tableName);
-        return sqliteEngine.Merge(helper, sql);
     }
 
     public <T> int dropTable(Class<T> tClass) throws Exception {
         StringBuilder sqlModuleList = SqlFactory.getDrop(tClass);
-        return sqliteEngine.Merge(sqlModuleList);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(tClass),sqlModuleList);
     }
 
-    public <T> int dropTable(SQLiteOpenHelper helper, Class<T> tClass) throws Exception {
-        StringBuilder sqlModuleList = SqlFactory.getDrop(tClass);
-        return sqliteEngine.Merge(helper, sqlModuleList);
-    }
 
     public int create(Class tClass) throws Exception {
         StringBuilder sb = SqlFactory.getCreate(tClass);
-        return sqliteEngine.Merge(sb);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(tClass),sb);
     }
 
-    public int create(SQLiteOpenHelper helper, Class tClass) throws Exception {
-        StringBuilder sb = SqlFactory.getCreate(tClass);
-        return sqliteEngine.Merge(helper, sb);
-    }
 
     public int createIfNotExist(Class tClass) throws Exception {
         StringBuilder sm = SqlFactory.getCreateIfNotExists(tClass);
-        return sqliteEngine.Merge(sm);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(tClass),sm);
     }
 
-    public int createIfNotExist(SQLiteOpenHelper helper, Class tClass) throws Exception {
-        StringBuilder sm = SqlFactory.getCreateIfNotExists(tClass);
-        return sqliteEngine.Merge(helper, sm);
-    }
 
 }

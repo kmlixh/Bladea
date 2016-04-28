@@ -6,9 +6,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 
+import com.janyee.bladea.Dao.Condition.Condition;
 import com.janyee.bladea.Dao.Exception.DaoException;
 import com.janyee.bladea.Dao.Module.LinkModule;
 import com.janyee.bladea.Dao.Module.TableModule;
+import com.janyee.bladea.Dao.annotation.Table;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -19,21 +21,13 @@ import java.util.List;
  */
 class SqliteEngine {
     Context context;
-    SQLiteOpenHelper dbHelper;
-    protected SqliteEngine(Context context,SQLiteOpenHelper dbHelper) {
+    protected SqliteEngine(Context context) {
         this.context = context;
-        if(dbHelper!=null){
-            this.dbHelper=dbHelper;
-        }else{
-            this.dbHelper=DBHelper.getInstance(context);
-        }
     }
 
-    protected int Merge(StringBuilder sql){
-        return Merge(dbHelper,sql);
-    }
-    protected int Merge(SQLiteOpenHelper dbHelper,StringBuilder sql) {
+    protected int Merge(TableModule module,StringBuilder sql) {
         int result = 0;
+        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
         try {
             SQLiteDatabase database=dbHelper.getWritableDatabase();
             SQLiteStatement statement = database.compileStatement(sql.toString());
@@ -45,12 +39,11 @@ class SqliteEngine {
         }
         return result;
     }
-    protected long Count(StringBuilder sql){
-        return Count(dbHelper,sql);
-    }
-    protected long Count(SQLiteOpenHelper dbHelper,StringBuilder sql) {
+    protected long Count(TableModule module, Condition condition) {
         long result = 0;
+        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
         try {
+            StringBuilder sql=SqlFactory.getCount(module.getTableName(),condition);
             SQLiteDatabase database=dbHelper.getWritableDatabase();
             SQLiteStatement statement = database.compileStatement(sql.toString());
             result =  statement.simpleQueryForLong();
@@ -61,11 +54,9 @@ class SqliteEngine {
         }
         return result;
     }
-    protected int TransactionMerge(List<StringBuilder> sqls){
-        return TransactionMerge(dbHelper,sqls);
-    }
-    protected int TransactionMerge(SQLiteOpenHelper dbHelper,List<StringBuilder> sqls) {
+    protected int TransactionMerge(TableModule module,List<StringBuilder> sqls) {
         int count = 0;
+        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
         SQLiteDatabase database=null;
         try {
             database=dbHelper.getWritableDatabase();
@@ -83,10 +74,8 @@ class SqliteEngine {
         }
         return count;
     }
-    protected void fastMerge(StringBuilder sql) {
-        fastMerge(dbHelper,sql);
-    }
-    protected void fastMerge(SQLiteOpenHelper dbHelper,StringBuilder sql) {
+    protected void fastMerge(TableModule module,StringBuilder sql) {
+        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
         try {
             SQLiteDatabase database=dbHelper.getWritableDatabase();
             SQLiteStatement statement = database.compileStatement(sql.toString());
@@ -97,10 +86,8 @@ class SqliteEngine {
             dbHelper.close();
         }
     }
-    protected void FastTransactionMerge(StringBuilder... sqls) {
-        FastTransactionMerge(dbHelper,sqls);
-    }
-    protected void FastTransactionMerge(SQLiteOpenHelper dbHelper,StringBuilder... sqls) {
+    protected void FastTransactionMerge(TableModule module,StringBuilder... sqls) {
+        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
         SQLiteDatabase database=null;
         try {
             database=dbHelper.getWritableDatabase();
@@ -117,16 +104,14 @@ class SqliteEngine {
             dbHelper.close();
         }
     }
-    protected boolean checkTableExsist(String tableName) throws Exception {
-        return checkTableExsist(dbHelper,tableName);
-    }
-    protected boolean checkTableExsist(SQLiteOpenHelper dbHelper,String tableName) throws Exception {
+    protected boolean checkTableExsist(TableModule module) throws Exception {
         boolean result = false;
+        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
         SQLiteDatabase database=null;
         try {
             database=dbHelper.getWritableDatabase();
             long count;
-                String sql = "select count(*) from sqlite_master where type='table' and name ='"+tableName+"';";
+                String sql = "select count(*) from sqlite_master where type='table' and name ='"+module.getTableName()+"';";
                 SQLiteStatement statement = database.compileStatement(sql);
                 count = statement.simpleQueryForLong();
             if (count == 1) {
@@ -140,24 +125,16 @@ class SqliteEngine {
         }
         return result;
     }
-    protected <T> boolean checkTableExsist(Class<T> tClass) throws Exception {
-        return checkTableExsist(dbHelper,tClass);
-    }
-    protected <T> boolean checkTableExsist(SQLiteOpenHelper dbHelper,Class<T> tClass) throws Exception {
-        return checkTableExsist(dbHelper,SqlFactory.getTableModule(tClass).getTableName());
-    }
-    protected <T> List<T> query(Class<T> tClass, StringBuilder sql, boolean queryLink) throws Exception {
-        return query(dbHelper,tClass,sql,queryLink);
-    }
-    protected <T> List<T> query(SQLiteOpenHelper dbHelper,Class<T> tClass, StringBuilder sql, boolean queryLink) throws Exception {
+
+    protected <T> List<T> query(TableModule<T> module, StringBuilder sql, boolean queryLink) throws Exception {
+        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
         List<T> tlist = new ArrayList<T>();
         SQLiteDatabase database=null;
         try{
             database=dbHelper.getReadableDatabase();
-            TableModule<T> tableModule = SqlFactory.getTableModule(tClass);
             Cursor cursor = database.rawQuery(sql.toString(), null);
             while (cursor.moveToNext()) {
-                T temp = tableModule.bindValue(cursor);
+                T temp = module.bindValue(cursor);
                 if (temp != null) {
                     tlist.add(temp);
                 } else {
@@ -165,26 +142,26 @@ class SqliteEngine {
                 }
             }
             cursor.close();
-            if(queryLink&&tableModule.getLinkMap().size()>0){
-                for(T t:tlist){
-                    for(LinkModule<T> module:tableModule.getLinkMap().values()){
-                        StringBuilder sql_link;
-                        if(module.getBoundField().getType().equals(Array.newInstance(module.getBoundClass(), 0).getClass())||module.getBoundField().getType().newInstance() instanceof List){//判断是否为List或者数组
-                            sql_link=SqlFactory.getLinkQuery(t,module);
-                            List links=query(module.getBoundClass(),sql_link,true);
-                            if(module.getBoundField().getType().equals(Array.newInstance(module.getBoundClass(), 0).getClass())){
-                                module.bindField(t,links.toArray());
-                            }else{
-                                module.bindField(t,links);
-                            }
-                        }else{
-                            sql_link =SqlFactory.getLinkFetch(t,module);
-                            List links=query(module.getBoundClass(),sql_link,true);
-                            module.bindField(t,links.get(0));
-                        }
-                    }
-                }
-            }
+//            if(queryLink&&module.getLinkMap().size()>0){
+//                for(T t:tlist){
+//                    for(LinkModule<T> temp:module.getLinkMap().values()){
+//                        StringBuilder sql_link;
+//                        if(temp.getBoundField().getType().equals(Array.newInstance(temp.getBoundClass(), 0).getClass())||temp.getBoundField().getType().newInstance() instanceof List){//判断是否为List或者数组
+//                            sql_link=SqlFactory.getLinkQuery(t,temp);
+//                            List links=query(temp,sql_link,true);
+//                            if(temp.getBoundField().getType().equals(Array.newInstance(temp.getBoundClass(), 0).getClass())){
+//                                temp.bindField(t,links.toArray());
+//                            }else{
+//                                temp.bindField(t,links);
+//                            }
+//                        }else{
+//                            sql_link =SqlFactory.getLinkFetch(t,temp);
+//                            List links=query(temp,true);
+//                            temp.bindField(t,links.get(0));
+//                        }
+//                    }
+//                }
+//            }
         }catch (Exception e){
             throw  new DaoException(e.getMessage());
         }finally {

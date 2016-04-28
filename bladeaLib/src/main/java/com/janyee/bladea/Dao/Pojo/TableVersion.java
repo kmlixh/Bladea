@@ -1,5 +1,6 @@
 package com.janyee.bladea.Dao.Pojo;
 
+import com.janyee.bladea.Dao.Factory.extds.ConfigDOHelperFactory;
 import com.janyee.bladea.Dao.annotation.Column;
 import com.janyee.bladea.Dao.annotation.ID;
 import com.janyee.bladea.Dao.annotation.Table;
@@ -7,7 +8,7 @@ import com.janyee.bladea.Dao.annotation.Table;
 /**
  * Created by kmlixh on 2016/1/25.
  */
-@Table(value="tableVersion")
+@Table(value="tableVersion",factory = ConfigDOHelperFactory.class)
 public class TableVersion {
     @ID
     String tabs;

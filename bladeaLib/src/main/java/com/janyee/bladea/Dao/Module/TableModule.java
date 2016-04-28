@@ -5,6 +5,7 @@ import android.database.Cursor;
 import com.janyee.bladea.Cast.DaoCastor;
 import com.janyee.bladea.Dao.Condition.Condition;
 import com.janyee.bladea.Dao.Exception.DaoException;
+import com.janyee.bladea.Dao.Factory.DataOpenHelperFactory;
 import com.janyee.bladea.Dao.annotation.Column;
 import com.janyee.bladea.Dao.annotation.Forget;
 import com.janyee.bladea.Dao.annotation.ID;
@@ -35,15 +36,53 @@ public  class TableModule<T> {
     T boundValue = null;
     Class<T> boundClass;
     String md5;
-
+    DataOpenHelperFactory factory;
     public TableModule(Class<T> tClass) throws Exception {
         boundClass=tClass;
         init();
     }
-    public TableModule(T t){
+    public TableModule(T t) throws Exception {
         boundValue=t;
         boundClass= (Class<T>) t.getClass();
+        init();
     }
+    private void init() throws Exception {
+        cellMap = new HashMap<>();
+        linkMap =new HashMap<>();
+        fieldList = getField(boundClass);
+        Annotation annotation = boundClass.getAnnotation(Table.class);
+        if (annotation != null) {
+            tableName = ((Table) annotation).value();
+            factory=((Table) annotation).factory().newInstance();
+        }else{
+            throw new DaoException("This Pojo '"+boundClass.getCanonicalName()+"' does not have a @Table Annotation!");
+        }
+        for (Field temp : fieldList) {
+            Annotation[] annotations = temp.getAnnotations();
+            for (Annotation ann : annotations) {
+                if ((ann instanceof ID)) {
+                    if (primaryCell == null) {
+                        primaryCell = new CellModule(temp);
+                    } else {
+                        throw new Exception("Dumplicate Primary Key!");
+                    }
+                }else if (ann instanceof Column) {
+                    CellModule cellModule = new CellModule(temp);
+                    cellMap.put(cellModule.getCellName(),cellModule);
+                }
+                if(ann instanceof Link){
+                    String field=((Link)ann).field();
+                    LinkModule module=new LinkModule(this,temp,field);
+                    linkMap.put(field,module);
+                }
+            }
+        }
+    }
+
+    public DataOpenHelperFactory getFactory() {
+        return factory;
+    }
+
     public String getInsertList() {
         StringBuilder nameList = new StringBuilder();
         StringBuilder valueList = new StringBuilder();
@@ -124,35 +163,7 @@ public  class TableModule<T> {
         }
         return stringBuilder.toString();
     }
-    private void init() throws Exception {
-        cellMap = new HashMap<>();
-        linkMap =new HashMap<>();
-        fieldList = getField(boundClass);
-        Annotation annotation = boundClass.getAnnotation(Table.class);
-        if (annotation != null) {
-            tableName = ((Table) annotation).value();
-        }
-        for (Field temp : fieldList) {
-            Annotation[] annotations = temp.getAnnotations();
-            for (Annotation ann : annotations) {
-                if ((ann instanceof ID)) {
-                    if (primaryCell == null) {
-                        primaryCell = new CellModule(temp);
-                    } else {
-                        throw new Exception("Dumplicate Primary Key!");
-                    }
-                }else if (ann instanceof Column) {
-                    CellModule cellModule = new CellModule(temp);
-                    cellMap.put(cellModule.getCellName(),cellModule);
-                }
-                if(ann instanceof Link){
-                    String field=((Link)ann).field();
-                    LinkModule module=new LinkModule(this,temp,field);
-                    linkMap.put(field,module);
-                }
-            }
-        }
-    }
+
 
     public Condition getCondition() {
         Condition condition = Condition.Where();

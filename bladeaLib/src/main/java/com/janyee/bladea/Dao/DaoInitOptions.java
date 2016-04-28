@@ -5,7 +5,6 @@ package com.janyee.bladea.Dao;
  */
 public class DaoInitOptions {
     private boolean autoUpdateTableStructure=true;
-    private DBHelper dbHelper;
     private DaoInitOptions() {
 
     }
@@ -21,12 +20,5 @@ public class DaoInitOptions {
     public void setAutoUpdateTableStructure(boolean autoUpdateTableStructure) {
         this.autoUpdateTableStructure = autoUpdateTableStructure;
     }
-
-    public DBHelper getDbHelper() {
-        return dbHelper;
-    }
-
-    public void setDbHelper(DBHelper dbHelper) {
-        this.dbHelper = dbHelper;
-    }
+    
 }
