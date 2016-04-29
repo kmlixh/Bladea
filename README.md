@@ -81,7 +81,7 @@ public class UserInfo {
 
 * dao.query:数据查询类；
 * dao.fetch;数据查询，单个。其实是对query查询做了limit 0,1
-* dao.save;数据存储；
+* dao.save;数据存储（忘记update那货吧，效果是一样的）；
 * dao.insert:数据插入；真心不推荐这么玩。
 * dao.delete;输出删除；
 * dao.create;手动创建表；话说，创建表，维护表结构这些事情，亲都不用操心。Dao会自行处理。
