@@ -16,5 +16,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Link {
     Class<?> target();
-    String field();
+    String localField();
+    String targetField() default "";
 }

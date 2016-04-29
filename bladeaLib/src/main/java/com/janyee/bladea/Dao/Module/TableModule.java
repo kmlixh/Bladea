@@ -30,7 +30,7 @@ import java.util.Map;
 public  class TableModule<T> {
     String tableName;
     Map<String,CellModule> cellMap;
-    Map<String,LinkModule<T>> linkMap;
+    Map<String,LinkModule> linkMap;
     List<Field> fieldList;
     CellModule primaryCell;
     T boundValue = null;
@@ -71,8 +71,8 @@ public  class TableModule<T> {
                     cellMap.put(cellModule.getCellName(),cellModule);
                 }
                 if(ann instanceof Link){
-                    String field=((Link)ann).field();
-                    LinkModule module=new LinkModule(this,temp,field);
+                    String field=((Link)ann).localField();
+                    LinkModule module=new LinkModule(this,temp,((Link)ann).localField(),((Link) ann).targetField(),((Link) ann).target());
                     linkMap.put(field,module);
                 }
             }
@@ -216,14 +216,18 @@ public  class TableModule<T> {
         return cellMap;
     }
     public Object getFieldValue(T t,String field){
-        return getCellMap().get(field).getFieldValue(t);
+        if(field.equals(primaryCell.getCellName())){
+            return primaryCell.getFieldValue(t);
+        }else{
+            return getCellMap().get(field).getFieldValue(t);
+        }
     }
 
     public Class getBoundClass() {
         return boundClass;
     }
 
-    public Map<String,LinkModule<T>> getLinkMap() {
+    public Map<String,LinkModule> getLinkMap() {
         return linkMap;
     }
     public void setBoundValue(T obj){

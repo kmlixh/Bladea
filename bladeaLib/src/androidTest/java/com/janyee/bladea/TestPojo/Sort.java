@@ -3,7 +3,10 @@ package com.janyee.bladea.TestPojo;
 import com.janyee.bladea.Dao.SqlDataType;
 import com.janyee.bladea.Dao.annotation.Column;
 import com.janyee.bladea.Dao.annotation.ID;
+import com.janyee.bladea.Dao.annotation.Link;
 import com.janyee.bladea.Dao.annotation.Table;
+
+import java.util.List;
 
 /**
  * Created by kmlixh on 2016/4/21.
@@ -14,6 +17,8 @@ public class Sort {
     String sort_id;
     @Column
     String sort_name;
+    @Link(target = Video.class,localField = "sort_id",targetField = "sort_id")
+    Video[] videoList;
 
     public String getSort_id() {
         return sort_id;
@@ -29,5 +34,13 @@ public class Sort {
 
     public void setSort_name(String sort_name) {
         this.sort_name = sort_name;
+    }
+
+    public Video[] getVideoList() {
+        return videoList;
+    }
+
+    public void setVideoList(Video[] videoList) {
+        this.videoList = videoList;
     }
 }

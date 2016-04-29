@@ -56,15 +56,13 @@ public class SqlFactory {
         }
     }
 
-    protected static <T> StringBuilder getLinkQuery(T t, LinkModule<T> linkModule) throws Exception {
+    protected static <T> StringBuilder getLinkQuery(T t, LinkModule linkModule) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("SELECT * FROM ").append(linkModule.getTableName() + "WHERE " + linkModule.getPrimaryCell().getCellName() + "='" + linkModule.getParent().getFieldValue(t, linkModule.getField()) + "';");
-        List<Object> values = new ArrayList<>();
-        values.add(linkModule.getParent().getFieldValue(t, linkModule.getField()));
+        stringBuilder.append("SELECT * FROM ").append(linkModule.getDstModule().getTableName() + " WHERE [" + linkModule.getRemoteFieldName() + "] ='" + linkModule.getHolder().getFieldValue(t, linkModule.getLocalFieldName()) + "';");
         return stringBuilder;
     }
 
-    protected static <T> StringBuilder getLinkFetch(T t, LinkModule<T> linkModule) throws Exception {
+    protected static <T> StringBuilder getLinkFetch(T t, LinkModule linkModule) throws Exception {
         StringBuilder stringBuilder = getLinkQuery(t, linkModule);
         stringBuilder.replace(stringBuilder.lastIndexOf(";"), stringBuilder.length(), "").append("LIMIT 0,1");
         return stringBuilder;

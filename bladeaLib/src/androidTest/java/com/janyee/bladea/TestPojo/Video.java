@@ -15,7 +15,7 @@ public class Video {
     String video_name;
     @Column("video_url")
     String videoUrl;
-    @Column("sort_sdfasdfsadfsdf")
+    @Column("sort_id")
     String sortId;
     @Column
     int video_length;
