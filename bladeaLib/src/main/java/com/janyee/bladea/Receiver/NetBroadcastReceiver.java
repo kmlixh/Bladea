@@ -21,7 +21,6 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
             ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             wifiState = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState();
             mobileState = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState();
-
             if (wifiState != null && mobileState != null && State.CONNECTED != wifiState && State.CONNECTED == mobileState) {
                 //ToastUtils.showToast(context, "网络连接成功！");
             } else if (wifiState != null && mobileState != null && State.CONNECTED == wifiState && State.CONNECTED != mobileState) {

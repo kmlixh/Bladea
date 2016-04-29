@@ -1,14 +1,11 @@
 package com.janyee.bladea.Dao;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import com.janyee.bladea.Dao.Condition.Condition;
 import com.janyee.bladea.Dao.Module.LinkModule;
 import com.janyee.bladea.Dao.Module.TableModule;
 import com.janyee.bladea.Dao.Pojo.TableVersion;
-import com.janyee.bladea.Dao.Cache.CacheInfo;
-import com.janyee.bladea.Dao.annotation.Link;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -38,7 +35,7 @@ public class Dao {
             }
             if (SqlFactory.versionMap == null || SqlFactory.versionMap.size() == 0) {
                 SqlFactory.versionMap = new HashMap<>();
-                List<TableVersion> tableVersionList = query(TableVersion.class, false);
+                List<TableVersion> tableVersionList = query(TableVersion.class);
                 if (tableVersionList.size() > 0) {
                     for (TableVersion version : tableVersionList) {
                         SqlFactory.versionMap.put(version.getTabs(), version.getVers());
@@ -73,7 +70,7 @@ public class Dao {
                 TableModule module = SqlFactory.getTableModule(classz);
                 if (sqliteEngine.checkTableExsist(module)) {
                     if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {
-                        List info = sqliteEngine.query(module, SqlFactory.getQuery(classz), false);
+                        List info = sqliteEngine.query(module, SqlFactory.getQuery(classz));
                         dropTable(classz);
                         create(module.getBoundClass());
                         save(info);
@@ -117,7 +114,7 @@ public class Dao {
                     StringBuilder sql;
                     if(temp.getBoundField().getType().equals(Array.newInstance(temp.getDstModule().getBoundClass(), 0).getClass())||temp.getBoundField().getType().equals(List.class)){
                         sql=SqlFactory.getLinkQuery(t,temp);
-                        List result=sqliteEngine.query(temp.getDstModule(),sql,false);
+                        List result=sqliteEngine.query(temp.getDstModule(),sql);
                         temp.getBoundField().setAccessible(true);
                         if(temp.getBoundField().getType().equals(List.class)){
                             temp.getBoundField().set(t,result);
@@ -127,7 +124,7 @@ public class Dao {
                         }
                     }else if(temp.getBoundField().getType().equals(temp.getDstModule().getBoundClass())){
                         sql=SqlFactory.getLinkFetch(t,temp);
-                        List result=sqliteEngine.query(temp.getDstModule(),sql,false);
+                        List result=sqliteEngine.query(temp.getDstModule(),sql);
                         temp.getBoundField().setAccessible(true);
                         temp.getBoundField().set(t,result.get(0));
                     }
@@ -136,30 +133,57 @@ public class Dao {
         return  t;
     }
 
-    public <T> List<T> query(Class<T> tClass, Condition condition, boolean queryLink) throws Exception {
+    public <T> List<T> query(Class<T> tClass, Condition condition) throws Exception {
         if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
             StringBuilder sb = SqlFactory.getQuery(tClass, condition);
-            return sqliteEngine.query(SqlFactory.getTableModule(tClass), sb, queryLink);
+            return sqliteEngine.query(SqlFactory.getTableModule(tClass), sb);
         } else {
             create(tClass);
             return new ArrayList<>();
         }
     }
 
-    public <T> List<T> query(Class<T> tClass, boolean queryLink) throws Exception {
+    public <T> List<T> query(Class<T> tClass) throws Exception {
         if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
             StringBuilder sb = SqlFactory.getQuery(tClass);
-            return sqliteEngine.query(SqlFactory.getTableModule(tClass), sb, queryLink);
+            return sqliteEngine.query(SqlFactory.getTableModule(tClass), sb);
         } else {
             create(tClass);
             return new ArrayList<>();
         }
     }
-
-    public <T> T fetch(Class<T> tClass, Condition condition, boolean queryLink) throws Exception {
+    public <T> T fetch(Class<T> tClass,String id) throws Exception {
+        if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
+            StringBuilder sb = SqlFactory.getFetch(tClass,id);
+            List<T> tList = sqliteEngine.query(SqlFactory.getTableModule(tClass), sb);
+            if (tList.size() > 0) {
+                return tList.get(0);
+            } else {
+                return null;
+            }
+        } else {
+            create(tClass);
+            return null;
+        }
+    }
+    public <T> T fetch(Class<T> tClass,int id) throws Exception {
+        if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
+            StringBuilder sb = SqlFactory.getFetch(tClass,id);
+            List<T> tList = sqliteEngine.query(SqlFactory.getTableModule(tClass), sb);
+            if (tList.size() > 0) {
+                return tList.get(0);
+            } else {
+                return null;
+            }
+        } else {
+            create(tClass);
+            return null;
+        }
+    }
+    public <T> T fetch(Class<T> tClass, Condition condition) throws Exception {
         if (sqliteEngine.checkTableExsist(SqlFactory.getTableModule(tClass))) {
             StringBuilder sb = SqlFactory.getQuery(tClass, condition);
-            List<T> tList = sqliteEngine.query(SqlFactory.getTableModule(tClass), sb, queryLink);
+            List<T> tList = sqliteEngine.query(SqlFactory.getTableModule(tClass), sb);
             if (tList.size() > 0) {
                 return tList.get(0);
             } else {

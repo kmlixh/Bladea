@@ -21,45 +21,48 @@ import java.util.List;
  */
 class SqliteEngine {
     Context context;
+
     protected SqliteEngine(Context context) {
         this.context = context;
     }
 
-    protected int Merge(TableModule module,StringBuilder sql) {
+    protected int Merge(TableModule module, StringBuilder sql) {
         int result = 0;
-        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
+        SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
         try {
-            SQLiteDatabase database=dbHelper.getWritableDatabase();
+            SQLiteDatabase database = dbHelper.getWritableDatabase();
             SQLiteStatement statement = database.compileStatement(sql.toString());
             result = statement.executeUpdateDelete();
         } catch (Exception e) {
             throw new DaoException(e.getMessage());
-        }finally {
+        } finally {
             dbHelper.close();
         }
         return result;
     }
+
     protected long Count(TableModule module, Condition condition) {
         long result = 0;
-        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
+        SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
         try {
-            StringBuilder sql=SqlFactory.getCount(module.getTableName(),condition);
-            SQLiteDatabase database=dbHelper.getWritableDatabase();
+            StringBuilder sql = SqlFactory.getCount(module.getTableName(), condition);
+            SQLiteDatabase database = dbHelper.getWritableDatabase();
             SQLiteStatement statement = database.compileStatement(sql.toString());
-            result =  statement.simpleQueryForLong();
+            result = statement.simpleQueryForLong();
         } catch (Exception e) {
             throw new DaoException(e.getMessage());
-        }finally {
+        } finally {
             dbHelper.close();
         }
         return result;
     }
-    protected int TransactionMerge(TableModule module,List<StringBuilder> sqls) {
+
+    protected int TransactionMerge(TableModule module, List<StringBuilder> sqls) {
         int count = 0;
-        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
-        SQLiteDatabase database=null;
+        SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
+        SQLiteDatabase database = null;
         try {
-            database=dbHelper.getWritableDatabase();
+            database = dbHelper.getWritableDatabase();
             database.beginTransaction();
             for (StringBuilder sql : sqls) {
                 SQLiteStatement sqLiteStatement = database.compileStatement(sql.toString());
@@ -74,23 +77,25 @@ class SqliteEngine {
         }
         return count;
     }
-    protected void fastMerge(TableModule module,StringBuilder sql) {
-        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
+
+    protected void fastMerge(TableModule module, StringBuilder sql) {
+        SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
         try {
-            SQLiteDatabase database=dbHelper.getWritableDatabase();
+            SQLiteDatabase database = dbHelper.getWritableDatabase();
             SQLiteStatement statement = database.compileStatement(sql.toString());
             statement.execute();
         } catch (Exception e) {
             throw new DaoException(e.getMessage());
-        }finally {
+        } finally {
             dbHelper.close();
         }
     }
-    protected void FastTransactionMerge(TableModule module,StringBuilder... sqls) {
-        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
-        SQLiteDatabase database=null;
+
+    protected void FastTransactionMerge(TableModule module, StringBuilder... sqls) {
+        SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
+        SQLiteDatabase database = null;
         try {
-            database=dbHelper.getWritableDatabase();
+            database = dbHelper.getWritableDatabase();
             database.beginTransaction();
             for (StringBuilder sql : sqls) {
                 SQLiteStatement sqLiteStatement = database.compileStatement(sql.toString());
@@ -104,34 +109,35 @@ class SqliteEngine {
             dbHelper.close();
         }
     }
+
     protected boolean checkTableExsist(TableModule module) throws Exception {
         boolean result = false;
-        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
-        SQLiteDatabase database=null;
+        SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
+        SQLiteDatabase database = null;
         try {
-            database=dbHelper.getWritableDatabase();
+            database = dbHelper.getWritableDatabase();
             long count;
-                String sql = "select count(*) from sqlite_master where type='table' and name ='"+module.getTableName()+"';";
-                SQLiteStatement statement = database.compileStatement(sql);
-                count = statement.simpleQueryForLong();
+            String sql = "select count(*) from sqlite_master where type='table' and name ='" + module.getTableName() + "';";
+            SQLiteStatement statement = database.compileStatement(sql);
+            count = statement.simpleQueryForLong();
             if (count == 1) {
                 result = true;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             dbHelper.close();
         }
         return result;
     }
 
-    protected <T> List<T> query(TableModule<T> module, StringBuilder sql, boolean queryLink) throws Exception {
-        SQLiteOpenHelper dbHelper=module.getFactory().getOpenHelper(context);
+    protected <T> List<T> query(TableModule<T> module, StringBuilder sql) throws Exception {
+        SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
         List<T> tlist = new ArrayList<T>();
-        SQLiteDatabase database=null;
-        try{
-            database=dbHelper.getReadableDatabase();
+        SQLiteDatabase database = null;
+        try {
+            database = dbHelper.getReadableDatabase();
             Cursor cursor = database.rawQuery(sql.toString(), null);
             while (cursor.moveToNext()) {
                 T temp = module.bindValue(cursor);
@@ -142,29 +148,9 @@ class SqliteEngine {
                 }
             }
             cursor.close();
-//            if(queryLink&&module.getLinkMap().size()>0){
-//                for(T t:tlist){
-//                    for(LinkModule<T> temp:module.getLinkMap().values()){
-//                        StringBuilder sql_link;
-//                        if(temp.getBoundField().getType().equals(Array.newInstance(temp.getBoundClass(), 0).getClass())||temp.getBoundField().getType().newInstance() instanceof List){//判断是否为List或者数组
-//                            sql_link=SqlFactory.getLinkQuery(t,temp);
-//                            List links=query(temp,sql_link,true);
-//                            if(temp.getBoundField().getType().equals(Array.newInstance(temp.getBoundClass(), 0).getClass())){
-//                                temp.bindField(t,links.toArray());
-//                            }else{
-//                                temp.bindField(t,links);
-//                            }
-//                        }else{
-//                            sql_link =SqlFactory.getLinkFetch(t,temp);
-//                            List links=query(temp,true);
-//                            temp.bindField(t,links.get(0));
-//                        }
-//                    }
-//                }
-//            }
-        }catch (Exception e){
-            throw  new DaoException(e.getMessage());
-        }finally {
+        } catch (Exception e) {
+            throw new DaoException(e.getMessage());
+        } finally {
             dbHelper.close();
         }
         return tlist;

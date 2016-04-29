@@ -1,5 +1,6 @@
 package com.janyee.bladea.Dao;
 
+import com.janyee.bladea.Cast.Castor;
 import com.janyee.bladea.Dao.Condition.Condition;
 import com.janyee.bladea.Dao.Exception.DaoException;
 import com.janyee.bladea.Dao.Module.LinkModule;
@@ -100,7 +101,26 @@ public class SqlFactory {
         condition.Pager(0, 1);
         return getQuery(tClass, condition);
     }
-
+    protected static <T> StringBuilder getFetch(Class<T> tClass,String id) throws Exception {
+        TableModule module=getTableModule(tClass);
+        if(!module.getPrimaryCell().getBoundField().getType().equals(String.class)){
+            throw new DaoException("can't use a String value as id for this Pojo!");
+        }else{
+            Object obj=tClass.newInstance();
+            module.getPrimaryCell().bindField(obj,id);
+            return getFetch(obj);
+        }
+    }
+    protected static <T> StringBuilder getFetch(Class<T> tClass,int id) throws Exception {
+        TableModule module=getTableModule(tClass);
+        if(!Castor.isNumberic(module.getPrimaryCell().getBoundField().getType())){
+            throw new DaoException("can't use a String value as id for this Pojo!");
+        }else{
+            Object obj=tClass.newInstance();
+            module.getPrimaryCell().bindField(obj,id);
+            return getFetch(obj);
+        }
+    }
     protected static StringBuilder getFetch(Object obj) throws Exception {
         Condition condition = Condition.getPrimaryCondition(obj);
         condition.Pager(0, 1);

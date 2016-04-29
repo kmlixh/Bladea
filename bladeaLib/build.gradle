@@ -3,9 +3,8 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 23
     buildToolsVersion '23.0.2'
-
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -18,6 +17,8 @@ android {
             jniDebuggable false
         }
     }
+    productFlavors {
+    }
 }
 
 dependencies {
@@ -25,4 +26,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.3.0'
     androidTestCompile 'com.alibaba:fastjson:1.2.10'
     androidTestCompile 'junit:junit:4.12'
+    compile 'com.alibaba:fastjson:1.2.10'
 }
