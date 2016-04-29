@@ -13,7 +13,7 @@ import java.text.ParseException;
  * Created by kmlixh on 2015/9/22.
  */
 public abstract  class  IDataParser<T> {
-    public abstract DataTuple<T> pullData(Cursor cursor, CellModule cell) throws ParseException, Exception;
+    public abstract DataTuple<T> read(Cursor cursor, CellModule cell) throws ParseException, Exception;
     public abstract SqlDataType getDataType(Field boundField);
-    public abstract Object pushData(T object);
+    public abstract Object write(T object);
 }

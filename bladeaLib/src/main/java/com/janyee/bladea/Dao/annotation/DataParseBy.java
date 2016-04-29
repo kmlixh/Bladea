@@ -1,5 +1,7 @@
 package com.janyee.bladea.Dao.annotation;
 
+import com.janyee.bladea.Dao.Util.IDataParser;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -15,5 +17,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Documented
 public @interface DataParseBy {
-    Class value();
+    Class<? extends IDataParser> value();
 }

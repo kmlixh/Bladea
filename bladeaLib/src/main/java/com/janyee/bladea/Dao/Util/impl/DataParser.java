@@ -20,7 +20,7 @@ public class DataParser extends IDataParser<Object> {
 
 
     @Override
-    public DataTuple<Object> pullData(Cursor cursor, CellModule cellModule) throws Exception {
+    public DataTuple<Object> read(Cursor cursor, CellModule cellModule) throws Exception {
         String cellName = cellModule.getCellName();
         int index = cursor.getColumnIndex(cellName);
         if (!cursor.isNull(index)) {
@@ -103,7 +103,7 @@ public class DataParser extends IDataParser<Object> {
     }
 
     @Override
-    public Object pushData(Object object) {
+    public Object write(Object object) {
         return object;
     }
 

@@ -90,7 +90,7 @@ public class CellModule {
      */
     public void bindField(Object obj, Cursor cursor) throws Exception {
         if (cursor.getColumnIndex(getCellName())!=-1) {
-            DataTuple tuple = parser.pullData(cursor, this);
+            DataTuple tuple = parser.read(cursor, this);
             boundField.setAccessible(true);
             boundField.set(obj, tuple.getDatas());
         } else {
@@ -112,7 +112,7 @@ public class CellModule {
             if (obj!=null) {
                 boundField.setAccessible(true);
                 Object temp = boundField.get(obj);
-                obbs=parser.pushData(temp);
+                obbs=parser.write(temp);
             }
         } catch (Exception e) {
             e.printStackTrace();
