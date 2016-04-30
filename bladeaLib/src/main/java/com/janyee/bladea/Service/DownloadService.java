@@ -36,7 +36,6 @@ public class DownloadService extends Service implements DownloadListener {
     public void onDestroy() {
         super.onDestroy();
     }
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
