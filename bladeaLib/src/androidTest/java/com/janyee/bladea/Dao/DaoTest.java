@@ -7,6 +7,8 @@ import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
+import com.janyee.bladea.Cache.CacheInfo;
+import com.janyee.bladea.TestPojo.UserInfo;
 import com.janyee.bladea.TestPojo.Video;
 
 import org.junit.Test;
@@ -19,8 +21,7 @@ public class DaoTest extends AndroidTestCase {
 
     @Test
     public void testQuery1() throws Exception {
-        ConnectivityManager cm=(ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        Log.d(TAG,cm.getActiveNetworkInfo().getExtraInfo());
+       Dao.getInstance(getContext()).preCachingClass(Video.class, UserInfo.class, CacheInfo.class);
     }
 
 

@@ -12,6 +12,6 @@ import com.janyee.bladea.Dao.Factory.DataOpenHelperFactory;
 public class ConfigDOHelperFactory extends DataOpenHelperFactory {
     @Override
     public SQLiteOpenHelper getOpenHelper(Context context) {
-        return DBHelper.getInstance(context);
+        return DBHelper.getConfigInstance(context);
     }
 }

@@ -1,5 +1,6 @@
 package com.janyee.bladea.Cache;
 
+import com.janyee.bladea.Dao.Factory.extds.ConfigDOHelperFactory;
 import com.janyee.bladea.Dao.annotation.Column;
 import com.janyee.bladea.Dao.annotation.ID;
 import com.janyee.bladea.Dao.annotation.Table;
@@ -7,7 +8,7 @@ import com.janyee.bladea.Dao.annotation.Table;
 /**
  * Created by kmlixh on 2016/4/22.
  */
-@Table("cache_info")
+@Table(value = "cache_info",factory = ConfigDOHelperFactory.class)
 public class CacheInfo {
     @ID("id")
     String cacheId;
