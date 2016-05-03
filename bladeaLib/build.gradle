@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
-version = "1.1"
+version = "1.1.2"
 
 android {
     compileSdkVersion 23
@@ -34,6 +34,7 @@ dependencies {
 }
 def siteUrl = 'https://github.com/kmlixh/Bladea'      // 项目的主页
 def gitUrl = 'https://github.com/kmlixh/Bladea.git'   // Git仓库的url
+def dsc='Android敏捷开发框架(Android Agile Development Framework)'
 group = "com.janyee.bladea"
 install {
     repositories.mavenInstaller {
@@ -42,7 +43,8 @@ install {
             project {
                 packaging 'aar'
                 // Add your description here
-                name 'Android敏捷开发框架(Android Agile Development Framework)' 	//项目描述
+                name 'Bladea' 	//项目描述
+                description dsc
                 url siteUrl
                 // Set your license
                 licenses {
@@ -98,12 +100,15 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
-    configurations = ['archives']
+    configurations = [ 'archives']
     pkg {
         repo = "maven"
         name = "com.janyee.Bladea"	//发布到JCenter上的项目名字
+        desc=dsc
+        issueTrackerUrl = "https://github.com/kmlixh/Bladea/issues"
         websiteUrl = siteUrl
         vcsUrl = gitUrl
+        publicDownloadNumbers = true
         licenses = ["GPL-3.0"]
         publish = true
         version {
