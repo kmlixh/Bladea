@@ -1,12 +1,25 @@
 ### Bladea是一个Android敏捷开发框架：
+使用方法,Maven:
+```
+<dependency>
+  <groupId>com.janyee.bladea</groupId>
+  <artifactId>bladeaLib</artifactId>
+  <version>1.1</version>
+  <type>pom</type>
+</dependency>
+```
+Gradle:
 
-数据库操作的灵感来自于[nutz](http://www.nutzam.com/)目前最主要的功能是用来处理Sqlite数据操作的POJO化，举个简单的栗子：
+```
+compile 'com.janyee.bladea:bladeaLib:1.1'
+```
+
+核心功能为数据库操作，灵感来自于[nutz](http://www.nutzam.com/)，举个简单的栗子：
 
 ```java
 Dao dao=Dao.getInstance(context);
 List<UserInfo> userList= dao.query(UserInfo.class);
 ```
-
 大概的，UserInfo.java会长这个样子：
 ```java
 /**
