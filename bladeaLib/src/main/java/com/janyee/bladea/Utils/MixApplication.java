@@ -2,6 +2,8 @@ package com.janyee.bladea.Utils;
 
 import android.app.Application;
 
+import com.janyee.bladea.Cache.CacheManager;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +12,7 @@ import java.util.Map;
  */
 public class MixApplication extends Application {
     private static MixApplication myself;
-    private static Map<String,Object> dataMap;
+    CacheManager manager;
     public MixApplication() {
 
     }
@@ -18,7 +20,7 @@ public class MixApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        dataMap=new HashMap<String,Object>();
+        manager=new CacheManager(getApplicationContext());
         CrashHandler crashHandler = CrashHandler.getInstance();
         // 注册crashHandler
         crashHandler.init(getApplicationContext());
@@ -32,24 +34,8 @@ public class MixApplication extends Application {
         }
         return myself;
     }
-
-    public void putData(String key, Object obj) {
-        if(dataMap==null){
-            dataMap=new HashMap<>();
-        }
-        dataMap.put(key,obj);
-    }
-    public Object getData(String key){
-        if(dataMap!=null){
-            return dataMap.get(key);
-        }else{
-            return null;
-        }
-    }
-    public void removeData(String key) {
-        if(dataMap!=null){
-            dataMap.remove(key);
-        }
+    public CacheManager getManager(){
+        return manager;
     }
 
 
