@@ -14,7 +14,7 @@ import java.util.Map;
  * Created by kmlixh on 2016/4/29.
  */
 public class CacheManager {
-    public static Map<String,Object> cacheMap;
+    private static Map<String,Object> cacheMap;
     Context context;
 
     public CacheManager(Context context) {
