@@ -46,9 +46,6 @@ public class MixApplication extends Application {
             return null;
         }
     }
-
-
-
     public void removeData(String key) {
         if(dataMap!=null){
             dataMap.remove(key);
