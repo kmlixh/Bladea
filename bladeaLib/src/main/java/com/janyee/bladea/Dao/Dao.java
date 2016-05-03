@@ -255,7 +255,16 @@ public class Dao {
             return 0;
         }
     }
-
+    public <T> int delete(Class<T> tClass,String id) throws Exception {
+        init(tClass);
+        StringBuilder sql=SqlFactory.getDelete(tClass,id);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(tClass),sql);
+    }
+    public <T> int delete(Class<T> tClass,int id) throws Exception {
+        init(tClass);
+        StringBuilder sql=SqlFactory.getDelete(tClass,id);
+        return sqliteEngine.Merge(SqlFactory.getTableModule(tClass),sql);
+    }
     public <T> int delete(Class<T> tClass, Condition condition) throws Exception {
         init(tClass);
         StringBuilder sb = SqlFactory.getDelete(tClass, condition);

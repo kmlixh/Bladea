@@ -78,4 +78,11 @@ public class CacheManager {
         String id=Md5.getMd5(object.getClass().getCanonicalName());
         put(id,object);
     }
+    public void remove(String id) throws Exception {
+        Dao.getInstance(context).delete(CacheInfo.class,id);
+    }
+    public <T> void remove(Class<T> tClass) throws Exception {
+        String id=Md5.getMd5(tClass.getCanonicalName());
+        remove(id);
+    }
 }

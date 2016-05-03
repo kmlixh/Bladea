@@ -173,7 +173,7 @@ public class SqlFactory {
     }
 
     protected static <T> StringBuilder getDelete(Class<T> tClass) throws Exception {
-        return getDelete(tClass, null);
+        return getDelete(tClass, Condition.Where());
     }
 
     protected static <T> StringBuilder getDelete(Class<T> tClass, Condition condition) throws Exception {
@@ -185,7 +185,14 @@ public class SqlFactory {
         }
         return stringBuilder;
     }
-
+    protected static <T> StringBuilder getDelete(Class<T> tClass,String id) throws Exception {
+        TableModule tableModule = getTableModule(tClass);
+        return getDelete(tClass,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
+    }
+    protected static <T> StringBuilder getDelete(Class<T> tClass,int id) throws Exception {
+        TableModule tableModule = getTableModule(tClass);
+        return getDelete(tClass,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
+    }
     protected static <T> StringBuilder getDelete(T obj) throws Exception {
         Condition condition = Condition.getPrimaryCondition(obj);
         return getDelete(obj.getClass(), condition);
