@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.janyee.bladea.Cache.CacheInfo;
+import com.janyee.bladea.Cache.CacheManager;
 import com.janyee.bladea.TestPojo.Sort;
 import com.janyee.bladea.TestPojo.UserInfo;
 import com.janyee.bladea.TestPojo.Video;
@@ -30,9 +31,10 @@ public class DaoTest extends AndroidTestCase {
         sort.setSort_id(id);
         sort.setOk(false);
         sort.setMark("mark");
-        Dao.getInstance(getContext()).save(sort);
-        Sort s2=Dao.getInstance(getContext()).fetch(Sort.class,id);
-        assertEquals(sort.isOk(),s2.isOk());
+        CacheManager manager=new CacheManager(getContext());
+        manager.put(sort);
+        Sort obj=new CacheManager(getContext()).get(Sort.class);
+        assertEquals(sort,obj);
     }
 
 
