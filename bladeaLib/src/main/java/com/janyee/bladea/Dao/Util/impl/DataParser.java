@@ -52,6 +52,10 @@ public class DataParser extends IDataParser<Object> {
                 DataTuple tuple=new DataTuple(byte[].class,cursor.getBlob(index));
                 return tuple;
             }
+            if((cellModule.getBoundField().getType().equals(boolean.class)||cellModule.getBoundField().getType().equals(Boolean.class))&&cursor.getType(index)==Cursor.FIELD_TYPE_INTEGER){
+                DataTuple tuple=new DataTuple(boolean.class,cursor.getShort(index)==1);
+                return tuple;
+            }
             if (cellModule.getBoundField().getType().equals(Date.class)) {
                 if (cursor.getType(index) == Cursor.FIELD_TYPE_STRING) {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyy-MM-dd HH:mm:ss");

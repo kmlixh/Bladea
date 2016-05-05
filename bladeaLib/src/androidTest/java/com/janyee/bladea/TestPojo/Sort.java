@@ -19,7 +19,10 @@ public class Sort {
     String sort_name;
     @Link(target = Video.class,localField = "sort_id",targetField = "sort_id")
     Video[] videoList;
-
+    @Column
+    boolean isOk;
+    @Column("ROAND")
+    String mark;
     public String getSort_id() {
         return sort_id;
     }
@@ -42,5 +45,21 @@ public class Sort {
 
     public void setVideoList(Video[] videoList) {
         this.videoList = videoList;
+    }
+
+    public boolean isOk() {
+        return isOk;
+    }
+
+    public void setOk(boolean ok) {
+        isOk = ok;
+    }
+
+    public String getMark() {
+        return mark;
+    }
+
+    public void setMark(String mark) {
+        this.mark = mark;
     }
 }
