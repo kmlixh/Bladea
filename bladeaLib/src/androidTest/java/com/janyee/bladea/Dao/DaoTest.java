@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSON;
 import com.janyee.bladea.Cache.CacheInfo;
 import com.janyee.bladea.Cache.CacheManager;
 import com.janyee.bladea.TestPojo.Sort;
+import com.janyee.bladea.TestPojo.SubSort;
 import com.janyee.bladea.TestPojo.UserInfo;
 import com.janyee.bladea.TestPojo.Video;
 
@@ -29,12 +30,9 @@ public class DaoTest extends AndroidTestCase {
         Sort sort=new Sort();
         sort.setSort_name("dsfasdfsfasd");
         sort.setSort_id(id);
-        sort.setOk(false);
         sort.setMark("mark");
-        CacheManager manager=new CacheManager(getContext());
-        manager.put(sort);
-        Sort obj=new CacheManager(getContext()).get(Sort.class);
-        assertEquals(sort,obj);
+        SubSort sort1= (SubSort) sort;
+        sort1.setOk(false);
     }
 
 
