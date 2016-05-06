@@ -13,6 +13,7 @@ import com.janyee.bladea.TestPojo.Sort;
 import com.janyee.bladea.TestPojo.SubSort;
 import com.janyee.bladea.TestPojo.UserInfo;
 import com.janyee.bladea.TestPojo.Video;
+import com.janyee.bladea.Views.PullListViewAdapter;
 
 import org.junit.Test;
 
@@ -26,13 +27,17 @@ public class DaoTest extends AndroidTestCase {
 
     @Test
     public void testQuery1() throws Exception {
-        String id=UUID.randomUUID().toString().replace("-","");
-        Sort sort=new Sort();
-        sort.setSort_name("dsfasdfsfasd");
-        sort.setSort_id(id);
-        sort.setMark("mark");
-        SubSort sort1= (SubSort) sort;
-        sort1.setOk(false);
+        PullListViewAdapter adapter=new PullListViewAdapter() {
+            @Override
+            protected void onRefresh() {
+
+            }
+
+            @Override
+            protected void onGetMore() {
+
+            }
+        }
     }
 
 
