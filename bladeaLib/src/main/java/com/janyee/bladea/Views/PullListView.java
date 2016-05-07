@@ -284,11 +284,7 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 		new AsyncTask<Void,Void,Void>(){
 			@Override
 			protected Void doInBackground(Void... params) {
-				List<T> info= adapter.onGetMore();
-				if(dataList!=null&&info!=null){
-					dataList.addAll(info);
-					mHandler.sendEmptyMessage(2);
-				}
+				adapter.onGetMore();
 				return null;
 			}
 		}.execute();
@@ -314,9 +310,6 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 		}
 	}
 
-	public List<T> getDataList() {
-		return dataList;
-	}
 
 	@Override
 	public BaseAdapter getAdapter() {
