@@ -20,7 +20,6 @@ public class MonthView extends LinearLayout {
     GridView mGridView;
     Context context;
     List<CalendarTypedValue> calendarTypedValueList;
-    FastAdapter.ViewBinder binder;
     AdapterView.OnItemClickListener listener;
     CalendarUtil util;
     CalendarView view;

@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Created by lixinghua on 2015/8/27.
  */
-public  class TableModule<T> {
+public class TableModule<T> {
     String tableName;
     Map<String,CellModule> cellMap;
     Map<String,LinkModule> linkMap;
@@ -37,6 +37,9 @@ public  class TableModule<T> {
     Class<T> boundClass;
     String md5;
     DataOpenHelperFactory factory;
+    private TableModule(){
+
+    }
     public TableModule(Class<T> tClass) throws Exception {
         boundClass=tClass;
         init();
@@ -78,7 +81,6 @@ public  class TableModule<T> {
             }
         }
     }
-
     public DataOpenHelperFactory getFactory() {
         return factory;
     }
@@ -193,6 +195,7 @@ public  class TableModule<T> {
             return null;
         }
     }
+
     public String getMd5(){
         if(md5==null){
             StringBuilder stringBuilder=new StringBuilder();
@@ -232,6 +235,15 @@ public  class TableModule<T> {
     }
     public void setBoundValue(T obj){
         boundValue=obj;
+    }
+    public TableModule copyModule(){
+        TableModule module=new TableModule();
+        module.boundClass=boundClass;
+        module.primaryCell=primaryCell;
+        module.cellMap=cellMap;
+        module.md5=md5;
+        module.fieldList=fieldList;
+        return module;
     }
 
 }

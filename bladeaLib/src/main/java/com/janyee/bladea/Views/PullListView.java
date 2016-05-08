@@ -41,7 +41,7 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 	private boolean isLoadingMore = false;
 	private boolean isEnabledPullDownRefresh = false;
 	private boolean isEnabledLoadMore = false;
-	private OnPullDownRefresh mOnPullDownRefresh;
+	private PullListViewAdapter<T> adapter;
 	
 	//头布局、脚布局及高度
 	private View mFootView;
@@ -56,22 +56,19 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 	private ImageView ivArrow;
 	private ProgressBar mProgressBar;
 	private TextView tv_statue,tv_time;
-	List<T> dataList;
-	BaseAdapter adapter;
 	Handler mHandler=new Handler(){
 		@Override
 		public void handleMessage(Message msg){
 			if(msg.what==1){//update
-				if(dataList!=null&&mOnPullDownRefresh!=null){
-					adapter=mOnPullDownRefresh.getAdapter(dataList);
+				if(adapter !=null){
 					setAdapter(adapter);
 				}
 			}else if(msg.what==2){//load more
-				if(dataList!=null&&adapter!=null){
+				if(adapter!=null){
 					adapter.notifyDataSetChanged();
 				}
 			}
-			if(mOnPullDownRefresh!=null){
+			if(adapter !=null){
 				OnRefreshDataFinish();
 			}
 		}
@@ -193,7 +190,7 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 				refreshPullDownState();
 				mPullDownHeader.setPadding(0, 0, 0, 0);
 				//回调刷新方法
-				if (mOnPullDownRefresh != null) {
+				if (adapter != null) {
 					onRefresh();
 
 				}
@@ -264,37 +261,20 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 	}
 	
 	/**
-	 * 回调方法，用于刷新数据及加载更多
-	 * @param listener
+	 * 适配器，用于刷新数据及加载更多
+	 * @param adapter
 	 */
-	public void setOnPullDownRefresh(OnPullDownRefresh listener) {
-		this.mOnPullDownRefresh = listener;
-		onLocalData();
+	public void setOnPullDownRefresh(PullListViewAdapter adapter) {
+		this.adapter = adapter;
 		onRefresh();
 	}
 
-	public interface OnPullDownRefresh<T> {
-		public List<T> getLocalData();
-		public List<T> onPullDownRefresh();
-		public List<T> onLoadingMore();
-		public BaseAdapter getAdapter(List<T> dataList);
-	}
-	public void onLocalData(){
-		new AsyncTask<Void,Void,Void>(){
-			@Override
-			protected Void doInBackground(Void... params) {
-				dataList=mOnPullDownRefresh.getLocalData();
-				mHandler.sendEmptyMessage(1);
-				return null;
-			}
-		}.execute();
 
-	}
 	public void onRefresh(){
 		new AsyncTask<Void,Void,Void>(){
 			@Override
 			protected Void doInBackground(Void... params) {
-				dataList=mOnPullDownRefresh.onPullDownRefresh();
+				adapter.onRefresh();
 				mHandler.sendEmptyMessage(1);
 				return null;
 			}
@@ -304,11 +284,7 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 		new AsyncTask<Void,Void,Void>(){
 			@Override
 			protected Void doInBackground(Void... params) {
-				List<T> info=mOnPullDownRefresh.onLoadingMore();
-				if(dataList!=null&&info!=null){
-					dataList.addAll(info);
-					mHandler.sendEmptyMessage(2);
-				}
+				adapter.onGetMore();
 				return null;
 			}
 		}.execute();
@@ -327,16 +303,13 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 				//展示脚布局
 				mFootView.setPadding(0, 0, 0, 0);
 				setSelection(getCount());
-				if (mOnPullDownRefresh != null) {
+				if (adapter != null) {
 					onLoadingMore();
 				}
 			}
 		}
 	}
 
-	public List<T> getDataList() {
-		return dataList;
-	}
 
 	@Override
 	public BaseAdapter getAdapter() {

@@ -62,9 +62,9 @@ public class CacheManager {
         }
         return obj;
     }
-    public <T> Object get(Class<T> tClass){
+    public <T> T get(Class<T> tClass){
         String id= Md5.getMd5(tClass.getCanonicalName());
-        return get(id);
+        return (T) get(id);
     }
     public void put(String id,Object object) throws Exception {
         String className=object.getClass().getCanonicalName();
