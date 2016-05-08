@@ -28,7 +28,7 @@ public abstract class MixActivity extends Activity {
 
     public abstract void HandleMessages(Message msg);
 
-    public void JumpTo(Class<Activity> classz) {
+    public void JumpTo(Class<? extends Activity> classz) {
         Intent i = new Intent();
         i.setClass(getApplicationContext(), classz);
         startActivity(i);
