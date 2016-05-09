@@ -2,6 +2,7 @@ package com.janyee.bladea.Views.Calendar;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.LinearLayout;
@@ -23,14 +24,13 @@ public class MonthView extends LinearLayout {
     AdapterView.OnItemClickListener listener;
     CalendarUtil util;
     CalendarView view;
-    public MonthView(Context context, ValueTuple<CalendarUtil, List<CalendarTypedValue>> tuple, AdapterView.OnItemClickListener listener, FastAdapter.ViewBinder binder1, CalendarView view) {
+    public MonthView(Context context, ValueTuple<CalendarUtil, List<CalendarTypedValue>> tuple, AdapterView.OnItemClickListener listener) {
         super(context);
         this.util = tuple.front;
         setOrientation(VERTICAL);
         calendarTypedValueList = tuple.last;
         this.listener = listener;
         this.view=view;
-        binder = binder1;
         this.context = context;
         mGridView = new GridView(context) {
             @Override
@@ -47,7 +47,17 @@ public class MonthView extends LinearLayout {
 
     public void update() {
         if (adapter == null) {
-            adapter = new CalendarAdapter(this,context, util, calendarTypedValueList, binder);
+            adapter = new CalendarAdapter(this, context, util, calendarTypedValueList) {
+                @Override
+                public View getView(Context context, int position, Object data) {
+                    return null;
+                }
+
+                @Override
+                public View update(View v, int position, Object data) {
+                    return null;
+                }
+            };
             mGridView.setAdapter(adapter);
         } else {
             adapter.mlist = calendarTypedValueList;

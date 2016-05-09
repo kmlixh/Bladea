@@ -18,15 +18,15 @@ import java.util.List;
 /**
  * Created by lier on kmlixh on 2015/11/3.
  */
-public class CalendarAdapter<T> extends FastAdapter<T> {
+public abstract class CalendarAdapter<T> extends FastAdapter<T> {
     MonthView monthView;
     private CalendarUtil util;
     private TextView title;
     RelativeLayout monthBar;
     LinearLayout weekBar;
 
-    public CalendarAdapter(MonthView monthView, Context ctx, CalendarUtil util, List<T> list, ViewBinder vb) {
-        super(ctx, list, vb);
+    public CalendarAdapter(MonthView monthView, Context ctx, CalendarUtil util, List<T> list) {
+        super(ctx, list);
         this.util = util;
         this.monthView = monthView;
     }

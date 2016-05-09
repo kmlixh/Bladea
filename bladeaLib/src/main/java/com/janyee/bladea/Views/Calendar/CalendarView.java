@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by lier on kmlixh on 2015/11/3.
  */
-public abstract class CalendarView<T> extends ListView implements android.widget.AdapterView.OnItemClickListener,FastAdapter.ViewBinder<CalendarTypedValue> {
+public abstract class CalendarView<T> extends ListView implements android.widget.AdapterView.OnItemClickListener {
     Calendar startCal;
     Calendar endCal;
     MonthView startMonth,endMonth;
@@ -32,20 +32,17 @@ public abstract class CalendarView<T> extends ListView implements android.widget
         public void handleMessage(Message msg) {
             if (msg.what == 1) {
                 localData = generateData();
-                FastAdapter.ViewBinder vb = new FastAdapter.ViewBinder() {
+                adapter = new FastAdapter(context, localData) {
                     @Override
-                    public View getView(int i, Context context, Object o) {
-                        MonthView view = new MonthView(context, (ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o, CalendarView.this,CalendarView.this,CalendarView.this);
-                        return view;
-                    }
+                    public View getView(Context context, int position, Object o) {
+                        MonthView view = new MonthView(context, (ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o, CalendarView.this);
+                        return view;                    }
 
                     @Override
-                    public View update(View view, int i, Object o) {
-                        ((MonthView) view).update((ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o);
-                        return view;
-                    }
+                    public View update(View v, int position, Object o) {
+                        ((MonthView) v).update((ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o);
+                        return v;                    }
                 };
-                adapter = new FastAdapter(context, localData, vb);
                 setAdapter(adapter);
             }
         }

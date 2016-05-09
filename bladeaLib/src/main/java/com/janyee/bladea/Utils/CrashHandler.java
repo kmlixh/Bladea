@@ -55,7 +55,8 @@ public class CrashHandler implements UncaughtExceptionHandler {
     }
 
     /**
-     * 获取CrashHandler实例 ,单例模式
+     *
+     * @return
      */
     public static CrashHandler getInstance() {
         return INSTANCE;
