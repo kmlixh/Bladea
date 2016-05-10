@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by lier on kmlixh on 2015/11/3.
  */
-public abstract class CalendarView<T> extends ListView implements android.widget.AdapterView.OnItemClickListener {
+public abstract class CalendarView<T> extends ListView implements android.widget.AdapterView.OnItemClickListener{
     Calendar startCal;
     Calendar endCal;
     MonthView startMonth,endMonth;
@@ -32,16 +32,19 @@ public abstract class CalendarView<T> extends ListView implements android.widget
         public void handleMessage(Message msg) {
             if (msg.what == 1) {
                 localData = generateData();
+
                 adapter = new FastAdapter(context, localData) {
                     @Override
                     public View getView(Context context, int position, Object o) {
-                        MonthView view = new MonthView(context, (ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o, CalendarView.this);
-                        return view;                    }
+                        MonthView view = new MonthView(context, (ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o, CalendarView.this,CalendarView.this);
+                        return view;
+                    }
 
                     @Override
                     public View update(View v, int position, Object o) {
                         ((MonthView) v).update((ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o);
-                        return v;                    }
+                        return v;
+                    }
                 };
                 setAdapter(adapter);
             }

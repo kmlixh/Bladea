@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.test.AndroidTestCase;
 import android.util.Log;
+import android.view.View;
 
 import com.alibaba.fastjson.JSON;
 import com.janyee.bladea.Cache.CacheInfo;
@@ -17,6 +18,8 @@ import com.janyee.bladea.Views.PullListViewAdapter;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,17 +30,10 @@ public class DaoTest extends AndroidTestCase {
 
     @Test
     public void testQuery1() throws Exception {
-        PullListViewAdapter adapter=new PullListViewAdapter() {
-            @Override
-            protected void onRefresh() {
-
-            }
-
-            @Override
-            protected void onGetMore() {
-
-            }
-        }
+        CacheManager manager=new CacheManager(getContext());
+        int i=0;
+        Object obj=manager.get("initType");
+        assertEquals(i,obj);
     }
 
 
