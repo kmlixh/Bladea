@@ -36,7 +36,7 @@ public abstract class CalendarView<T> extends ListView implements android.widget
                 adapter = new FastAdapter(context, localData) {
                     @Override
                     public View getView(Context context, int position, Object o) {
-                        MonthView view = new MonthView(context, (ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o, CalendarView.this,CalendarView.this);
+                        MonthView view = new MonthView(context, (ValueTuple<CalendarUtil, List<CalendarTypedValue>>) o, CalendarView.this);
                         return view;
                     }
 
