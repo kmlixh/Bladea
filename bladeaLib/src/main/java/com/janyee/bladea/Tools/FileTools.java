@@ -21,7 +21,7 @@ import java.util.Random;
  * @author nuatar
  *         文件操作类，内容还不完善
  */
-public class FileManager {
+public class FileTools {
     public static String IsExist = "dw23d34";
     public static String IsNosExist = "32dsd34";
     public static String OK = "3er432e3";
@@ -31,9 +31,9 @@ public class FileManager {
     public static String PrepareDir(String savePath) {
         File file = new File(savePath.substring(0, savePath.lastIndexOf('/')));
         if (!file.exists()) {
-            return file.mkdirs() ? FileManager.OK : FileManager.WRONG;
+            return file.mkdirs() ? FileTools.OK : FileTools.WRONG;
         } else {
-            return FileManager.IsExist;
+            return FileTools.IsExist;
         }
     }
 
@@ -70,7 +70,7 @@ public class FileManager {
                 if (inC.position() == inC.size()) {
                     inC.close();
                     outC.close();
-                    return FileManager.OK;
+                    return FileTools.OK;
                 }
                 if ((inC.size() - inC.position()) < 209715200) {
                     length = (int) (inC.size() - inC.position());
@@ -82,7 +82,7 @@ public class FileManager {
                 i++;
             }
         } catch (Exception e) {
-            return FileManager.WRONG;
+            return FileTools.WRONG;
         }
     }
 
@@ -143,6 +143,26 @@ public class FileManager {
         }
     }
 
+    /**
+     *
+     * @param path 要删除的文件、文件夹路径
+     * @return true on Success
+     */
+    public static boolean delete(String path){
+        File dir=new File(path);
+        if(dir.exists()&&dir.isDirectory()){
+            if(dir.list()!=null&&dir.list().length>0){
+                for(File temp:dir.listFiles()){
+                    if(!temp.isFile()){
+                        delete(temp.getAbsolutePath());
+                    }
+                    temp.delete();
+                }
+            }
+        }
+        dir.delete();
+        return true;
+    }
     public static boolean isSameFile(String path1, String path2) {
         File file1 = new File(path1);
         File file2 = new File(path2);

@@ -1,6 +1,6 @@
 package com.janyee.bladea.Http;
 
-import com.janyee.bladea.Tools.FileManager;
+import com.janyee.bladea.Tools.FileTools;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -35,7 +35,7 @@ public class HttpManager {
         int lgn = 0;
         long d1 = (new Date()).getTime();
         if (!sfile.exists()) {
-            FileManager.PrepareDir(savePath);
+            FileTools.PrepareDir(savePath);
             int bytesum = 0;
             int byteread = 0;
             URL url = null;

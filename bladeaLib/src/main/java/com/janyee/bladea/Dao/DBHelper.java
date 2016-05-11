@@ -4,13 +4,12 @@ package com.janyee.bladea.Dao;
  * Created by Administrator on 2014/12/2.
  */
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.janyee.bladea.Tools.FileManager;
+import com.janyee.bladea.Tools.FileTools;
 import com.janyee.bladea.Tools.Md5;
 
 import java.io.File;
@@ -91,7 +90,7 @@ public class DBHelper extends SQLiteOpenHelper {
             ff.delete();
         }
         try {
-            FileManager.PrepareDir(aa);
+            FileTools.PrepareDir(aa);
             ff.createNewFile();
         } catch (IOException e1) {
             e1.printStackTrace();
@@ -128,7 +127,7 @@ public class DBHelper extends SQLiteOpenHelper {
             ff.delete();
         }
         try {
-            FileManager.PrepareDir(aa);
+            FileTools.PrepareDir(aa);
             ff.createNewFile();
         } catch (IOException e1) {
             e1.printStackTrace();
@@ -161,12 +160,12 @@ public class DBHelper extends SQLiteOpenHelper {
         String aa = context.getDatabasePath(getDbName(context)).getPath();
         File fs = new File(path);
         File ff = new File(aa);
-        if (!FileManager.isSameFile(path, aa)) {
+        if (!FileTools.isSameFile(path, aa)) {
             if (delExsit && ff.exists()) {
                 ff.delete();
             }
             try {
-                FileManager.PrepareDir(aa);
+                FileTools.PrepareDir(aa);
                 ff.createNewFile();
             } catch (IOException e1) {
                 e1.printStackTrace();
