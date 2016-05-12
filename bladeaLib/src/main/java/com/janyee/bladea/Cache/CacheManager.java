@@ -43,8 +43,13 @@ public class CacheManager {
     private  Object convertCacheToObject(CacheInfo info){
         Object obj=null;
         try{
-            Class classz=Class.forName(info.getClassName());
-            obj= JSON.parseObject(info.getInfo(),classz);
+            String className=info.getClassName().startsWith("List:")?info.getClassName().substring(5):info.getClassName();
+            Class classz=Class.forName(className);
+            if(info.getClassName().startsWith("List:")){
+                obj=JSON.parseArray(info.getInfo(),classz);
+            }else{
+                obj= JSON.parseObject(info.getInfo(),classz);
+            }
         }catch (Exception e){
             obj=null;
         }
@@ -73,6 +78,18 @@ public class CacheManager {
         info.setClassName(className);
         info.setInfo(JSON.toJSONString(object));
         Dao.getInstance(context).save(info);
+    }
+    public <T> void put(String id,List<T> tList) throws Exception {
+        String className="List:"+tList.get(0).getClass().getCanonicalName();
+        CacheInfo info=new CacheInfo();
+        info.setCacheId(id);
+        info.setClassName(className);
+        info.setInfo(JSON.toJSONString(tList));
+        Dao.getInstance(context).save(info);
+    }
+    public <T> void put(List<T> tList) throws Exception {
+        String id="List:"+tList.get(0).getClass().getCanonicalName();
+        put(id,tList);
     }
     public void put(Object object) throws Exception {
         String id=Md5.getMd5(object.getClass().getCanonicalName());

@@ -31,26 +31,11 @@ public class DaoTest extends AndroidTestCase {
 
     @Test
     public void testQuery1() throws Exception {
-        String path="/storage/emulated/0/com.aierxin.aierxin/";
-        delete(path);
+
+        CacheManager manager=new CacheManager(getContext());
+        Object obj=manager.get("videos");
+        assertEquals(obj,null);
     }
 
-    public static boolean delete(String path){
-        File dir=new File(path);
-        if(dir.isFile()){
-            return dir.delete();
-        }
-        if(dir.exists()&&dir.isDirectory()){
-            if(dir.list()!=null&&dir.list().length>0){
-                for(File temp:dir.listFiles()){
-                    if(!temp.isFile()){
-                        delete(temp.getAbsolutePath());
-                    }
-                    temp.delete();
-                }
-            }
-            dir.delete();
-        }
-        return true;
-    }
+
 }
