@@ -72,20 +72,25 @@ public class CacheManager {
         return (T) get(id);
     }
     public void put(String id,Object object) throws Exception {
-        String className=object.getClass().getCanonicalName();
-        CacheInfo info=new CacheInfo();
-        info.setCacheId(id);
-        info.setClassName(className);
-        info.setInfo(JSON.toJSONString(object));
-        Dao.getInstance(context).save(info);
+        if(object!=null){
+            String className=object.getClass().getCanonicalName();
+            CacheInfo info=new CacheInfo();
+            info.setCacheId(id);
+            info.setClassName(className);
+            info.setInfo(JSON.toJSONString(object));
+            Dao.getInstance(context).save(info);
+        }
     }
     public <T> void put(String id,List<T> tList) throws Exception {
-        String className="List:"+tList.get(0).getClass().getCanonicalName();
-        CacheInfo info=new CacheInfo();
-        info.setCacheId(id);
-        info.setClassName(className);
-        info.setInfo(JSON.toJSONString(tList));
-        Dao.getInstance(context).save(info);
+        if(tList!=null&&tList.size()>0){
+            String className="List:"+tList.get(0).getClass().getCanonicalName();
+            CacheInfo info=new CacheInfo();
+            info.setCacheId(id);
+            info.setClassName(className);
+            info.setInfo(JSON.toJSONString(tList));
+            Dao.getInstance(context).save(info);
+        }
+
     }
     public <T> void put(List<T> tList) throws Exception {
         String id="List:"+tList.get(0).getClass().getCanonicalName();
