@@ -149,7 +149,7 @@ class SqliteEngine {
             }
             cursor.close();
         } catch (Exception e) {
-            throw new DaoException(e.getMessage());
+            throw e;
         } finally {
             dbHelper.close();
         }

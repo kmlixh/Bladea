@@ -10,10 +10,13 @@ import android.view.View;
 import com.alibaba.fastjson.JSON;
 import com.janyee.bladea.Cache.CacheInfo;
 import com.janyee.bladea.Cache.CacheManager;
+import com.janyee.bladea.TestPojo.ClassInfo;
 import com.janyee.bladea.TestPojo.Sort;
 import com.janyee.bladea.TestPojo.SubSort;
+import com.janyee.bladea.TestPojo.Tpojo;
 import com.janyee.bladea.TestPojo.UserInfo;
 import com.janyee.bladea.TestPojo.Video;
+import com.janyee.bladea.TestPojo.VideoCache;
 import com.janyee.bladea.Views.PullListViewAdapter;
 
 import org.junit.Test;
@@ -32,9 +35,8 @@ public class DaoTest extends AndroidTestCase {
     @Test
     public void testQuery1() throws Exception {
 
-        CacheManager manager=new CacheManager(getContext());
-        Object obj=manager.get("videos");
-        assertEquals(obj,null);
+        ClassInfo tt=Dao.getInstance(getContext()).fetch(ClassInfo.class,"fdsasdf");
+        assertEquals(SqlFactory.getSave(tt),"");
     }
 
 

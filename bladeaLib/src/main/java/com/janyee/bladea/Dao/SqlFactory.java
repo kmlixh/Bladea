@@ -114,7 +114,7 @@ public class SqlFactory {
     protected static <T> StringBuilder getFetch(Class<T> tClass,int id) throws Exception {
         TableModule module=getTableModule(tClass);
         if(!Castor.isNumberic(module.getPrimaryCell().getBoundField().getType())){
-            throw new DaoException("can't use a String value as id for this Pojo!");
+            throw new DaoException("can't use a number value as id for this Pojo!");
         }else{
             Object obj=tClass.newInstance();
             module.getPrimaryCell().bindField(obj,id);

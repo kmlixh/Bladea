@@ -24,25 +24,53 @@ public class DataParser extends IDataParser<Object> {
     public Object read(Cursor cursor, CellModule cellModule) throws Exception {
         String cellName = cellModule.getCellName();
         int index = cursor.getColumnIndex(cellName);
+        Class tclass=cellModule.getBoundField().getType();
         int type=cursor.getType(index);
+        Object result=null;
         if (!cursor.isNull(index)) {
-            Object data=null;
-            if(type==Cursor.FIELD_TYPE_FLOAT){
-                data=cursor.getDouble(index);
+            if(tclass.equals(int.class)||tclass.equals(Integer.class)){
+                result= cursor.getInt(index);
             }
-            if(type==Cursor.FIELD_TYPE_BLOB){
-                data=cursor.getBlob(index);
+            if(tclass.equals(long.class)||tclass.equals(Long.class)){
+                result= cursor.getLong(index);
             }
-            if(type==Cursor.FIELD_TYPE_INTEGER){
-                data=cursor.getLong(index);
+            if(tclass.equals(short.class)||tclass.equals(Short.class)){
+                result= cursor.getShort(index);
             }
-            if(type==Cursor.FIELD_TYPE_STRING){
-                data=cursor.getString(index);
+            if(tclass.equals(byte.class)||tclass.equals(Byte.class)){
+                result= (byte)cursor.getInt(index);
             }
-            return Castor.convertObject(cellModule.getBoundField().getType(),data);
-        } else {
-            return null;
+            if(tclass.equals(float.class)||tclass.equals(Float.class)){
+                result= cursor.getFloat(index);
+            }
+            if(tclass.equals(double.class)||tclass.equals(Double.class)){
+                result= cursor.getDouble(index);
+            }
+            if(tclass.equals(boolean.class)||tclass.equals(Boolean.class)){
+                result= cursor.getInt(index)>0;
+            }
+            if(tclass.equals(Date.class)){
+                if(type==Cursor.FIELD_TYPE_STRING){
+                    result= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss").parse(cursor.getString(index));
+                }
+                if(type==Cursor.FIELD_TYPE_INTEGER){
+                    Date date=new Date();
+                    date.setTime(cursor.getLong(index));
+                    result= date;
+                }
+            }
+            if(tclass.equals(Calendar.class)){
+                Date test=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss").parse(cursor.getString(index));
+                Calendar calendar=Calendar.getInstance();
+                calendar.setTime(test);
+                result= calendar;
+            }
+            if(tclass.equals(String.class)){
+                result=cursor.getString(index);
+            }
+
         }
+        return result;
     }
 
     @Override
