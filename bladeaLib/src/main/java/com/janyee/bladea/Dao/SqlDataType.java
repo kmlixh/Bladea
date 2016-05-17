@@ -8,7 +8,7 @@ import java.util.Date;
  * Created by kmlixh on 2014/11/24.
  */
 public enum SqlDataType {
-    INT(int.class), FLOAT(float.class), DOUBLE(double.class), TEXT(String.class), SMALLINI(short.class), BIGINT(long.class), TINYINT(byte.class,char.class), DATETIME(Date.class, Calendar.class),BLOB(byte[].class),NVARCHAR(String.class),CHAR(String.class),VARCHAR(String.class),NCHAR(String.class),MONEY(BigDecimal.class),  BOOLEAN(boolean.class,int.class,byte.class),AUTO(Object.class);
+    INT(int.class,Integer.class), FLOAT(float.class,Float.class), DOUBLE(double.class,Double.class), TEXT(String.class), SMALLINI(short.class,Short.class), BIGINT(long.class,Long.class), TINYINT(byte.class,char.class,Byte.class,Character.class), DATETIME(Date.class, Calendar.class),BLOB(byte[].class,Byte[].class),NVARCHAR(String.class),CHAR(String.class),VARCHAR(String.class),NCHAR(String.class),MONEY(BigDecimal.class),  BOOLEAN(boolean.class,int.class,byte.class),AUTO(Object.class);
     private Class[] nameClass;
 
     private SqlDataType(Class... nameClass) {

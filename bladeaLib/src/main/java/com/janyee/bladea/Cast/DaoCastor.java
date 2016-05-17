@@ -1,5 +1,7 @@
 package com.janyee.bladea.Cast;
 
+import android.database.Cursor;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -11,10 +13,8 @@ import java.util.List;
  */
 public class DaoCastor {
     public static String ObjectToString(Object obj) {
-        String result = "";
-        if(obj==null){
-            result="NULL";
-        }
+        String result = "NULL";
+
         if (obj instanceof Date) {
             DateFormat formate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             result = "'" + formate.format(obj) + "'";
@@ -30,7 +30,10 @@ public class DaoCastor {
             result=((boolean)obj)?"1":"0";
         }else if(obj.getClass().equals(byte[].class)){
             result="'"+new String(((byte[])obj))+"'";
-        }else if(obj instanceof String ||obj.getClass().equals(int.class)||obj.getClass().equals(float.class)||obj.getClass().equals(Float.class)){
+        }else if(obj.getClass().equals(int.class)||obj.getClass().equals(float.class)||obj.getClass().equals(Float.class)||obj.getClass().equals(long.class)||obj.getClass().equals(Long.class)
+                ||obj.getClass().equals(short.class)||obj.getClass().equals(Short.class)||obj.getClass().equals(byte.class)||obj.getClass().equals(Byte.class)||obj.getClass().equals(double.class)||obj.getClass().equals(Double.class)){
+            result=String.valueOf(obj);
+        }else if(obj instanceof String){
             result="'"+String.valueOf(obj)+"'";
         }
         return result;
@@ -64,4 +67,5 @@ public class DaoCastor {
             return null;
         }
     }
+
 }
