@@ -1,9 +1,6 @@
 package com.janyee.bladea.Views;
 
 import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -11,7 +8,6 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -29,7 +25,7 @@ import java.util.List;
  * @author liujing
  * @version 1.0
  */
-public class PullListView<T,V extends View> extends ListView implements OnScrollListener {
+public abstract class PullListView<T,V extends View> extends ListView implements OnScrollListener,IDataGetter<T> {
 
 	private final int PULL_DOWN_REFRESH = 0;//下拉状态
 	private final int RELEASE_REFRESH = 1;//松开状态
@@ -41,7 +37,7 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 	private boolean isLoadingMore = false;
 	private boolean isEnabledPullDownRefresh = false;
 	private boolean isEnabledLoadMore = false;
-	private PullListViewAdapter<T> adapter;
+	private AutoFreshDataAdapter<T,V> adapter;
 	
 	//头布局、脚布局及高度
 	private View mFootView;
@@ -56,24 +52,6 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 	private ImageView ivArrow;
 	private ProgressBar mProgressBar;
 	private TextView tv_statue,tv_time;
-	Handler mHandler=new Handler(){
-		@Override
-		public void handleMessage(Message msg){
-			if(msg.what==1){//update
-				if(adapter !=null){
-					setAdapter(adapter);
-				}
-			}else if(msg.what==2){//load more
-				if(adapter!=null){
-					adapter.notifyDataSetChanged();
-				}
-			}
-			if(adapter !=null){
-				OnRefreshDataFinish();
-			}
-		}
-	};
-
 
 	public PullListView(Context context) {
 		this(context, null);
@@ -85,6 +63,19 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 
 	public PullListView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
+		adapter=new AutoFreshDataAdapter<T, V>(context,this) {
+			@Override
+			public V getView(Context context, int position, T data) {
+				return PullListView.this.getView(context,position,data);
+			}
+
+			@Override
+			public V update(V v, int position, T data) {
+				return PullListView.this.update(v,position,data);
+			}
+		};
+		setAdapter(adapter);
+		adapter.refresh();
 		initPullDownHeaderView();
 		initLoadMoreFooterView();
 
@@ -191,8 +182,7 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 				mPullDownHeader.setPadding(0, 0, 0, 0);
 				//回调刷新方法
 				if (adapter != null) {
-					onRefresh();
-
+					adapter.refresh();
 				}
 			}
 			break;
@@ -259,36 +249,8 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 		downAnimation.setDuration(200);
 		downAnimation.setFillAfter(true);
 	}
-	
-	/**
-	 * 适配器，用于刷新数据及加载更多
-	 * @param adapter
-	 */
-	public void setOnPullDownRefresh(PullListViewAdapter adapter) {
-		this.adapter = adapter;
-		onRefresh();
-	}
 
 
-	public void onRefresh(){
-		new AsyncTask<Void,Void,Void>(){
-			@Override
-			protected Void doInBackground(Void... params) {
-				adapter.onRefresh();
-				mHandler.sendEmptyMessage(1);
-				return null;
-			}
-		}.execute();
-	}
-	public void onLoadingMore(){
-		new AsyncTask<Void,Void,Void>(){
-			@Override
-			protected Void doInBackground(Void... params) {
-				adapter.onGetMore();
-				return null;
-			}
-		}.execute();
-	}
 	@Override
 	public void onScrollStateChanged(AbsListView view, int scrollState) {
 		if (!isEnabledLoadMore) {
@@ -304,17 +266,12 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 				mFootView.setPadding(0, 0, 0, 0);
 				setSelection(getCount());
 				if (adapter != null) {
-					onLoadingMore();
+					adapter.loadMore();
 				}
 			}
 		}
 	}
 
-
-	@Override
-	public BaseAdapter getAdapter() {
-		return adapter;
-	}
 
 	@Override
 	public void onScroll(AbsListView view, int firstVisibleItem,
@@ -337,4 +294,13 @@ public class PullListView<T,V extends View> extends ListView implements OnScroll
 	public void setEnabledLoadMore(boolean isEnable) {
 		isEnabledLoadMore = isEnable;
 	}
+
+	protected abstract V getView(Context context,int position,T data);
+	protected abstract V update(V v, int position, T data);
+
+	@Override
+	public abstract List<T> refresh();
+
+	@Override
+	public abstract List<T> loadMore();
 }

@@ -15,8 +15,8 @@ import java.util.List;
  * @author nuatar
  *         性能优化过的Adapter，适用于ListView，GridView等
  */
-public abstract class FastAdapter<T> extends BaseAdapter {
-    public List<T> mlist;
+public abstract class FastAdapter<T,V extends View> extends BaseAdapter {
+    protected List<T> mlist;
     protected Context context;
     public FastAdapter(Context context) {
         this.context = context;
@@ -52,8 +52,8 @@ public abstract class FastAdapter<T> extends BaseAdapter {
 
         return position;
     }
-    public abstract View getView(Context context,int position,T data);
-    public abstract View update(View v, int position, T data);
+    public abstract V getView(Context context,int position,T data);
+    public abstract V update(V v, int position, T data);
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -61,7 +61,7 @@ public abstract class FastAdapter<T> extends BaseAdapter {
         if (null == convertView) {
             convertView = getView( context,position, mlist.get(position));
         } else {
-            update(convertView,position,mlist.get(position));
+            update((V) convertView,position,mlist.get(position));
         }
 
         return convertView;
