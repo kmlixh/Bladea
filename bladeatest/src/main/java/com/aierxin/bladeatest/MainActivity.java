@@ -3,6 +3,9 @@ package com.aierxin.bladeatest;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.janyee.bladea.Views.PullListView;
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
                 for(int i=0;i<10;i++){
                     stringList.add("page:"+page+",seed:"+i);
                 }
+                OnRefreshDataFinish();
                 return stringList;
             }
 
@@ -46,9 +50,16 @@ public class MainActivity extends AppCompatActivity {
                 for(int i=0;i<10;i++){
                     stringList.add("page:"+page+",seed:"+i);
                 }
+                OnRefreshDataFinish();
                 return stringList;
             }
         };
-        setContentView(pullListView);
+        RelativeLayout.LayoutParams params=new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        pullListView.setLayoutParams(params);
+        pullListView.setEnabledLoadMore(true);
+        pullListView.setEnabledPullDownRefresh(true);
+        setContentView(R.layout.activity_main);
+        RelativeLayout holder= (RelativeLayout) findViewById(R.id.main_holder);
+        holder.addView(pullListView);
     }
 }

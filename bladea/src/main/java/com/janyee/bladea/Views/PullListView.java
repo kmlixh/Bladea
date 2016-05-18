@@ -25,7 +25,7 @@ import java.util.List;
  * @author liujing
  * @version 1.0
  */
-public abstract class PullListView<T,V extends View> extends ListView implements OnScrollListener,IDataGetter<T> {
+public abstract class PullListView<T,V extends View> extends ListView implements OnScrollListener {
 
 	private final int PULL_DOWN_REFRESH = 0;//下拉状态
 	private final int RELEASE_REFRESH = 1;//松开状态
@@ -63,23 +63,31 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 
 	public PullListView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		adapter=new AutoFreshDataAdapter<T, V>(context,this) {
+		adapter=new AutoFreshDataAdapter<T, V>(context) {
+			@Override
+			public List<T> refreshWork() {
+				return PullListView.this.refresh();
+			}
+
+			@Override
+			public List<T> loadMoreWork() {
+				return PullListView.this.loadMore();
+			}
+
 			@Override
 			public V getView(Context context, int position, T data) {
 				return PullListView.this.getView(context,position,data);
 			}
-
 			@Override
 			public V update(V v, int position, T data) {
 				return PullListView.this.update(v,position,data);
 			}
 		};
 		setAdapter(adapter);
-		adapter.refresh();
 		initPullDownHeaderView();
 		initLoadMoreFooterView();
-
 	}
+
 	
 	private void initLoadMoreFooterView() {
 		//加载更多的布局文件
@@ -298,9 +306,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 	protected abstract V getView(Context context,int position,T data);
 	protected abstract V update(V v, int position, T data);
 
-	@Override
 	public abstract List<T> refresh();
 
-	@Override
 	public abstract List<T> loadMore();
 }

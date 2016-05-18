@@ -6,6 +6,6 @@ import java.util.List;
  * Created by kmlixh on 2016/5/18.
  */
 public interface IDataGetter<T> {
-    List<T> refresh();
-    List<T> loadMore();
+    List<T> refreshWork();
+    List<T> loadMoreWork();
 }

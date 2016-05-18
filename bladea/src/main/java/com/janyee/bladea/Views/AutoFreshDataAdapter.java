@@ -14,7 +14,6 @@ import java.util.List;
  * Created by kmlixh on 2016/5/6.
  */
 public abstract class AutoFreshDataAdapter<T, V extends View> extends FastAdapter<T, V> {
-    IDataGetter<T> getter;
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -26,42 +25,36 @@ public abstract class AutoFreshDataAdapter<T, V extends View> extends FastAdapte
         }
     };
 
-    public AutoFreshDataAdapter(Context context) {
-        super(context);
-    }
 
     public AutoFreshDataAdapter(Context ctx, List<T> wp) {
         super(ctx, wp);
     }
 
-    public AutoFreshDataAdapter(Context context,IDataGetter<T> getter){
+    public AutoFreshDataAdapter(Context context){
         super(context);
-        this.getter=getter;
         refresh();
     }
 
     public void refresh() {
-        if (getter != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    List<T> dataList = getter.refresh();
-                    if (dataList != null && dataList.size() > 0) {
-                        mlist = dataList;
-                        mHandler.sendEmptyMessage(1);
-                    }else{
-                        mHandler.sendEmptyMessage(-1);
-                    }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<T> dataList = refreshWork();
+                if (dataList != null && dataList.size() > 0) {
+                    mlist = dataList;
+                    mHandler.sendEmptyMessage(1);
+                }else{
+                    mHandler.sendEmptyMessage(-1);
                 }
-            }).start();
-        }
+            }
+        }).start();
     }
 
     public void loadMore() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                List<T> dataList = getter.loadMore();
+                List<T> dataList = loadMoreWork();
                 if (dataList != null && dataList.size() > 0) {
                     if(mlist!=null){
                         mlist.addAll(dataList);
@@ -73,4 +66,6 @@ public abstract class AutoFreshDataAdapter<T, V extends View> extends FastAdapte
             }
         }).start();
     }
+    protected abstract List<T> refreshWork();
+    protected abstract List<T> loadMoreWork();
 }
