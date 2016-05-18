@@ -1,1 +1,1 @@
-include ':app', ':bladeaLib'
+include ':bladea', ':bladeatest'
