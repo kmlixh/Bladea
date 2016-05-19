@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Bladea.iml" filepath="$PROJECT_DIR$/Bladea.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bladea/bladea.iml" filepath="$PROJECT_DIR$/bladea/bladea.iml" />
       <module fileurl="file://$PROJECT_DIR$/bladea/bladeaLib.iml" filepath="$PROJECT_DIR$/bladea/bladeaLib.iml" />
       <module fileurl="file://$PROJECT_DIR$/bladeatest/bladeatest.iml" filepath="$PROJECT_DIR$/bladeatest/bladeatest.iml" />
     </modules>
