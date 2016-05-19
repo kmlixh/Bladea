@@ -35,37 +35,24 @@ public abstract class AutoFreshDataAdapter<T, V extends View> extends FastAdapte
         refresh();
     }
 
-    public void refresh() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<T> dataList = refreshWork();
-                if (dataList != null && dataList.size() > 0) {
-                    mlist = dataList;
-                    mHandler.sendEmptyMessage(1);
-                }else{
-                    mHandler.sendEmptyMessage(-1);
-                }
-            }
-        }).start();
+    public abstract void refresh();
+
+    public abstract void loadMore();
+    public void setData(List<T> mlist){
+        this.mlist=mlist;
+        mHandler.sendEmptyMessage(1);
+    }
+    public void addData(List<T> mlist){
+        if(this.mlist!=null&&this.mlist.size()>0){
+            this.mlist.addAll(mlist);
+        }else{
+            this.mlist=mlist;
+        }
+        mHandler.sendEmptyMessage(1);
+
+    }
+    public List<T> getData(){
+        return mlist;
     }
 
-    public void loadMore() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<T> dataList = loadMoreWork();
-                if (dataList != null && dataList.size() > 0) {
-                    if(mlist!=null){
-                        mlist.addAll(dataList);
-                    }
-                    mHandler.sendEmptyMessage(1);
-                }else{
-                    mHandler.sendEmptyMessage(-1);
-                }
-            }
-        }).start();
-    }
-    protected abstract List<T> refreshWork();
-    protected abstract List<T> loadMoreWork();
 }

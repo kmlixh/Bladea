@@ -2,6 +2,7 @@ package com.janyee.bladea.Views;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
@@ -29,6 +30,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 
 	private final int PULL_DOWN_REFRESH = 0;//下拉状态
 	private final int RELEASE_REFRESH = 1;//松开状态
+	private final int LOAD_MORE = 5;//松开状态
 	private final int REFRESHING = 2;//刷新中状态
 	private int currentState = PULL_DOWN_REFRESH;
 	private int mListViewOnScreenY = -1;
@@ -39,13 +41,13 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 	private boolean isEnabledPullDownRefresh = false;
 	private boolean isEnabledLoadMore = false;
 	private AutoFreshDataAdapter<T,V> adapter;
-	
+
 	//头布局、脚布局及高度
 	private View mFootView;
 	private LinearLayout mHeaderView;
 	private int mFooterViewHeight;
 	private int mPullDownHeaderViewHeight;
-	
+
 	//mHeaderView中组件及动画
 	private View mCustomHeaderView;//用户自定义头布局
 	private View mPullDownHeader;//下拉刷新头布局
@@ -65,14 +67,15 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 	public PullListView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		adapter=new AutoFreshDataAdapter<T, V>(context) {
+
 			@Override
-			public List<T> refreshWork() {
-				return PullListView.this.refresh();
+			public void refresh() {
+				PullListView.this.refresh(this);
 			}
 
 			@Override
-			public List<T> loadMoreWork() {
-				return PullListView.this.loadMore();
+			public void loadMore() {
+				PullListView.this.loadMore(this);
 			}
 
 			@Override
@@ -89,7 +92,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 		initLoadMoreFooterView();
 	}
 
-	
+
 	private void initLoadMoreFooterView() {
 		//加载更多的布局文件
 		mFootView = View.inflate(getContext(), R.layout.pull_listview_footer,
@@ -125,7 +128,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 		initAnimation();
 		isAfterInitHead=true;
 	}
-	
+
 	/**
 	 * 添加额外的头布局，比如轮播图
 	 * @param v 自定义头布局
@@ -179,7 +182,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 				return true;
 			}else if(diffY < 0 && getLastVisiblePosition() == getCount()-1){
 				//脚布局可向上滑动
-				mFootView.setPadding(0,0,0,0);
+				currentState=LOAD_MORE;
 			}
 			break;
 		case MotionEvent.ACTION_UP:
@@ -195,25 +198,36 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 				if (adapter != null) {
 					adapter.refresh();
 				}
+			}else if(currentState==LOAD_MORE){
+				//展示脚布局
+				Log.e("======","2");
+				setSelection(getCount());
+				currentState = REFRESHING;
+				if (!isLoadingMore&&adapter != null) {
+					mFootView.setPadding(0, 0, 0, 0);
+					adapter.loadMore();
+					isLoadingMore = true;
+
+				}
 			}
 			break;
 		}
-		return super.onTouchEvent(ev);
+		return true;
 	}
-	
+
 	/**
 	 * 隐藏头布局或脚布局并重置控件
 	 */
 	public void OnRefreshDataFinish() {
-		if (isLoadingMore&&isAfterInitFoot) {
+		if (isLoadingMore) {
 			isLoadingMore = false;
-			mFootView.setPadding(0,-mFooterViewHeight,0,0);
-		} else if(isAfterInitHead){
+		} else if(isAfterInitHead&&isAfterInitFoot){
 			ivArrow.setVisibility(View.VISIBLE);
 			mProgressBar.setVisibility(View.INVISIBLE);
 			tv_statue.setText("下拉刷新");
 			tv_time.setText("最后刷新时间：" + getCurrentTime());
 			mPullDownHeader.setPadding(0, -mPullDownHeaderViewHeight, 0, 0);
+			mFootView.setPadding(0,-mFooterViewHeight,0,0);
 			currentState = PULL_DOWN_REFRESH;
 
 		}
@@ -244,7 +258,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 			break;
 		}
 	}
-	
+
 	/**
 	 * 箭头旋转动画
 	 */
@@ -272,24 +286,24 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 				|| scrollState == SCROLL_STATE_FLING) {
 			//listView已到达最底部
 			if ((getLastVisiblePosition() == getCount() - 1) && !isLoadingMore) {
-				isLoadingMore = true;
 				//展示脚布局
-				mFootView.setPadding(0, 0, 0, 0);
 				setSelection(getCount());
-				if (adapter != null) {
+				currentState = REFRESHING;
+				if (!isLoadingMore&&adapter != null) {
+					Log.e("======","3");
+					mFootView.setPadding(0, 0, 0, 0);
 					adapter.loadMore();
+					isLoadingMore = true;
 				}
 			}
 		}
 	}
-
-
 	@Override
 	public void onScroll(AbsListView view, int firstVisibleItem,
 						 int visibleItemCount, int totalItemCount) {
-		
+
 	}
-	
+
 	/**
 	 * 是否启用下拉刷新
 	 * @param isEnable
@@ -297,7 +311,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 	public void setEnabledPullDownRefresh(boolean isEnable) {
 		isEnabledPullDownRefresh = isEnable;
 	}
-	
+
 	/**
 	 * 是否启用加载更多
 	 * @param isEnable
@@ -309,7 +323,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 	protected abstract V getView(Context context,int position,T data);
 	protected abstract V update(V v, int position, T data);
 
-	public abstract List<T> refresh();
+	public abstract void refresh(AutoFreshDataAdapter<T,V> autoFreshDataAdapter);
 
-	public abstract List<T> loadMore();
+	public abstract void loadMore(AutoFreshDataAdapter<T,V> autoFreshDataAdapter);
 }

@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.janyee.bladea.Views.AutoFreshDataAdapter;
 import com.janyee.bladea.Views.PullListView;
 
 import java.util.ArrayList;
@@ -34,26 +35,37 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public List<String> refresh() {
+            public void refresh(AutoFreshDataAdapter<String, TextView> autoFreshDataAdapter) {
                 page=1;
                 List<String> stringList=new ArrayList<>();
                 for(int i=0;i<10;i++){
                     stringList.add("page:"+page+",seed:"+i);
                 }
+                autoFreshDataAdapter.setData(stringList);
                 OnRefreshDataFinish();
-                return stringList;
             }
 
             @Override
-            public List<String> loadMore() {
+            public void loadMore(final AutoFreshDataAdapter<String, TextView> autoFreshDataAdapter) {
                 page++;
-                List<String> stringList=new ArrayList<>();
+                final List<String> stringList=new ArrayList<>();
                 for(int i=0;i<10;i++){
                     stringList.add("page:"+page+",seed:"+i);
                 }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        autoFreshDataAdapter.addData(stringList);
+                    }
+                }).start();
                 OnRefreshDataFinish();
-                return stringList;
             }
+
         };
         RelativeLayout.LayoutParams params=new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         pullListView.setLayoutParams(params);
