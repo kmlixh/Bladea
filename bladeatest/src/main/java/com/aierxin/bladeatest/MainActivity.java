@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public List<String> refresh() {
+                page=1;
                 List<String> stringList=new ArrayList<>();
                 for(int i=0;i<10;i++){
                     stringList.add("page:"+page+",seed:"+i);
