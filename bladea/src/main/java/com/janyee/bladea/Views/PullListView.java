@@ -33,7 +33,8 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 	private int currentState = PULL_DOWN_REFRESH;
 	private int mListViewOnScreenY = -1;
 	private int downY = -1;
-	
+	private boolean isAfterInitHead=false;
+	private boolean isAfterInitFoot=false;
 	private boolean isLoadingMore = false;
 	private boolean isEnabledPullDownRefresh = false;
 	private boolean isEnabledLoadMore = false;
@@ -99,6 +100,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 		mFootView.setPadding(0,-mFooterViewHeight,0,0);
 		addFooterView(mFootView);
 		setOnScrollListener(this);
+		isAfterInitFoot=true;
 	}
 
 	private void initPullDownHeaderView() {
@@ -121,6 +123,7 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 		mPullDownHeader.setPadding(0, -mPullDownHeaderViewHeight, 0, 0);
 		addHeaderView(mHeaderView);
 		initAnimation();
+		isAfterInitHead=true;
 	}
 	
 	/**
@@ -202,10 +205,10 @@ public abstract class PullListView<T,V extends View> extends ListView implements
 	 * 隐藏头布局或脚布局并重置控件
 	 */
 	public void OnRefreshDataFinish() {
-		if (isLoadingMore) {
+		if (isLoadingMore&&isAfterInitFoot) {
 			isLoadingMore = false;
 			mFootView.setPadding(0,-mFooterViewHeight,0,0);
-		} else {
+		} else if(isAfterInitHead){
 			ivArrow.setVisibility(View.VISIBLE);
 			mProgressBar.setVisibility(View.INVISIBLE);
 			tv_statue.setText("下拉刷新");
