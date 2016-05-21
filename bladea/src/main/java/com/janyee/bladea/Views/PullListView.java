@@ -1,14 +1,16 @@
 package com.janyee.bladea.Views;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.Animation;
+import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -17,313 +19,669 @@ import android.widget.TextView;
 
 import com.janyee.bladea.R;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
-/**
- * 自定义ListView，下拉刷新、上拉自动加载更多
- * @author liujing
- * @version 1.0
- */
-public abstract class PullListView<T,V extends View> extends ListView implements OnScrollListener {
+public class PullListView extends ListView {
 
-	private final int PULL_DOWN_REFRESH = 0;//下拉状态
-	private final int RELEASE_REFRESH = 1;//松开状态
-	private final int LOAD_MORE = 5;//松开状态
-	private final int REFRESHING = 2;//刷新中状态
-	private int currentState = PULL_DOWN_REFRESH;
-	private int mListViewOnScreenY = -1;
-	private int downY = -1;
-	private boolean isAfterInitHead=false;
-	private boolean isAfterInitFoot=false;
-	private boolean isLoadingMore = false;
-	private boolean isEnabledPullDownRefresh = false;
-	private boolean isEnabledLoadMore = false;
-	private AutoFreshDataAdapter<T,V> adapter;
+    /**
+     * 加载更多类型<br/>
+     * 滑动到底部自动加载更多
+     */
+    public static final int GET_MORE_TYPE_AUTO = 0;
 
-	//头布局、脚布局及高度
-	private View mFootView;
-	private LinearLayout mHeaderView;
-	private int mFooterViewHeight;
-	private int mPullDownHeaderViewHeight;
+    /**
+     * 加载更多类型<br/>
+     * 点击触发加载更多
+     */
+    public static final int GET_MORE_TYPE_CLICK = 1;
 
-	//mHeaderView中组件及动画
-	private View mCustomHeaderView;//用户自定义头布局
-	private View mPullDownHeader;//下拉刷新头布局
-	private RotateAnimation upAnimation,downAnimation;
-	private ImageView ivArrow;
-	private ProgressBar mProgressBar;
-	private TextView tv_statue,tv_time;
+    /**
+     * 下拉刷新接口
+     */
+    public interface OnRefreshListener {
+        public void onRefresh();
+    }
 
-	public PullListView(Context context) {
-		this(context, null);
-	}
+    /**
+     * 加载更多接口
+     */
+    public interface OnGetMoreListener {
+        public void onGetMore();
+    }
 
-	public PullListView(Context context, AttributeSet attrs) {
-		this(context, attrs, 0);
-	}
+    private static final String TAG = PullListView.class.getSimpleName();
 
-	public PullListView(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
-		adapter=new AutoFreshDataAdapter<T, V>(context) {
+    // 完成状态（初始状态）
+    private final static int NONE = 0;
 
-			@Override
-			public void refresh() {
-				PullListView.this.refresh(this);
-			}
+    // 下拉刷新状态
+    private final static int PULL_TO_REFRESH = 1;
 
-			@Override
-			public void loadMore() {
-				PullListView.this.loadMore(this);
-			}
+    // 松开刷新状态
+    private final static int RELEASE_TO_REFRESH = 2;
 
-			@Override
-			public V getView(Context context, int position, T data) {
-				return PullListView.this.getView(context,position,data);
-			}
-			@Override
-			public V update(V v, int position, T data) {
-				return PullListView.this.update(v,position,data);
-			}
-		};
-		setAdapter(adapter);
-		initPullDownHeaderView();
-		initLoadMoreFooterView();
-	}
+    // 正在刷新状态
+    private final static int REFRESHING = 3;
 
+    // 实际上padding的距离与界面上偏移距离的比例（迟滞比例，越大越难拖动）
+    private final static float RATIO = 1.7f;
 
-	private void initLoadMoreFooterView() {
-		//加载更多的布局文件
-		mFootView = View.inflate(getContext(), R.layout.pull_listview_footer,
-				null);
-		mFootView.measure(0, 0);//测量
-		mFooterViewHeight = mFootView.getMeasuredHeight();
-		//隐藏脚布局
-		mFootView.setPadding(0,-mFooterViewHeight,0,0);
-		addFooterView(mFootView);
-		setOnScrollListener(this);
-		isAfterInitFoot=true;
-	}
+    private LayoutInflater inflater;
 
-	private void initPullDownHeaderView() {
-		//下拉刷新的布局文件
-		mHeaderView = (LinearLayout) View.inflate(getContext(),
-				R.layout.pull_listview_header, null);
-		mPullDownHeader = mHeaderView
-				.findViewById(R.id.ll_refresh_pull_down_header);
-		ivArrow = (ImageView) mHeaderView
-				.findViewById(R.id.iv_refresh_header_arrow);
-		mProgressBar = (ProgressBar) mHeaderView
-				.findViewById(R.id.pb_refresh_header);
-		tv_statue = (TextView) mHeaderView
-				.findViewById(R.id.tv_refresh_header_status);
-		tv_time = (TextView) mHeaderView
-				.findViewById(R.id.tv_refresh_header_time);
-		mPullDownHeader.measure(0, 0);//测量
-		mPullDownHeaderViewHeight = mPullDownHeader.getMeasuredHeight();
-		//隐藏头布局
-		mPullDownHeader.setPadding(0, -mPullDownHeaderViewHeight, 0, 0);
-		addHeaderView(mHeaderView);
-		initAnimation();
-		isAfterInitHead=true;
-	}
+    // 下拉刷新视图（头部视图）
+    private ViewGroup headView;
 
-	/**
-	 * 添加额外的头布局，比如轮播图
-	 * @param v 自定义头布局
-	 */
-	public void addListViewCustomHeaderView(View v) {
-		mCustomHeaderView = v;
-		mHeaderView.addView(mCustomHeaderView);
-	}
+    // 下拉刷新文字
+    private TextView tvHeadTitle;
 
-	@Override
-	public boolean onTouchEvent(MotionEvent ev) {
-		switch (ev.getAction()) {
-		case MotionEvent.ACTION_DOWN:
-			downY = (int) ev.getY();
-			break;
-		case MotionEvent.ACTION_MOVE:
-			if (downY == -1)
-				downY = (int) ev.getY();
-			//是否启用下拉刷新
-			if (!isEnabledPullDownRefresh)
-				break;
-			if (currentState == REFRESHING)
-				break;
-			//解决用户添加header与下拉刷新header的冲突
-			if (mCustomHeaderView != null) {
-				int[] location = new int[2];
-				if (mListViewOnScreenY == -1) {
-					this.getLocationOnScreen(location);
-					mListViewOnScreenY = location[1];
-				}
-				mCustomHeaderView.getLocationOnScreen(location);
-				if (location[1] < mListViewOnScreenY) {
-					break;
-				}
-			}
+    // 下拉刷新图标
+    private ImageView ivHeadArrow;
 
-			int moveY = (int) ev.getY();
-			int diffY = (moveY - downY)/2;
-			if (diffY > 0 && getFirstVisiblePosition() == 0) {
-				int paddingTop = -mPullDownHeaderViewHeight + diffY;
-				if (paddingTop < 0 && currentState != PULL_DOWN_REFRESH) {
-					//当前没有完全显示且当前状态为松开刷新，进入下拉刷新
-					currentState = PULL_DOWN_REFRESH;
-					refreshPullDownState();
-				} else if (paddingTop > 0 && currentState != RELEASE_REFRESH) {
-					//当前完全显示且当前状态为下拉刷新，进入松开刷新
-					currentState = RELEASE_REFRESH;
-					refreshPullDownState();
-				}
-				mPullDownHeader.setPadding(0, paddingTop, 0, 0);
-				return true;
-			}else if(diffY < 0 && getLastVisiblePosition() == getCount()-1){
-				//脚布局可向上滑动
-				currentState=LOAD_MORE;
-			}
-			break;
-		case MotionEvent.ACTION_UP:
-			downY = -1;
-			if (currentState == PULL_DOWN_REFRESH) {
-				//隐藏header
-				mPullDownHeader.setPadding(0, -mPullDownHeaderViewHeight, 0, 0);
-			} else if (currentState == RELEASE_REFRESH) {
-				currentState = REFRESHING;
-				refreshPullDownState();
-				mPullDownHeader.setPadding(0, 0, 0, 0);
-				//回调刷新方法
-				if (adapter != null) {
-					adapter.refresh();
-				}
-			}else if(currentState==LOAD_MORE){
-				//展示脚布局
-				Log.e("======","2");
-				setSelection(getCount());
-				currentState = REFRESHING;
-				if (!isLoadingMore&&adapter != null) {
-					mFootView.setPadding(0, 0, 0, 0);
-					adapter.loadMore();
-					isLoadingMore = true;
+    // 刷新中忙碌框
+    private ProgressBar pbHeadRefreshing;
 
-				}
-			}
-			break;
-		}
-		return true;
-	}
+    // 加载更多视图（底部视图）
+    private View footView;
 
-	/**
-	 * 隐藏头布局或脚布局并重置控件
-	 */
-	public void OnRefreshDataFinish() {
-		if (isLoadingMore) {
-			isLoadingMore = false;
-		} else if(isAfterInitHead&&isAfterInitFoot){
-			ivArrow.setVisibility(View.VISIBLE);
-			mProgressBar.setVisibility(View.INVISIBLE);
-			tv_statue.setText("下拉刷新");
-			tv_time.setText("最后刷新时间：" + getCurrentTime());
-			mPullDownHeader.setPadding(0, -mPullDownHeaderViewHeight, 0, 0);
-			mFootView.setPadding(0,-mFooterViewHeight,0,0);
-			currentState = PULL_DOWN_REFRESH;
+    // 加载更多文字
+    private TextView tvFootTitle;
 
-		}
-	}
+    // 加载更多忙碌框
+    private ProgressBar pbFootRefreshing;
 
-	private String getCurrentTime() {
-		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-		return format.format(new Date());
-	}
+    // 旋转动画
+    private RotateAnimation animation;
+    // 反向旋转动画
+    private RotateAnimation reverseAnimation;
 
-	private void refreshPullDownState() {
-		switch (currentState) {
-		case PULL_DOWN_REFRESH:
-			ivArrow.startAnimation(downAnimation);
-			tv_statue.setText("下拉刷新");
-			break;
-		case RELEASE_REFRESH:
-			ivArrow.startAnimation(upAnimation);
-			tv_statue.setText("松开刷新");
-			break;
-		case REFRESHING:
-			ivArrow.clearAnimation();
-			ivArrow.setVisibility(View.INVISIBLE);
-			mProgressBar.setVisibility(View.VISIBLE);
-			tv_statue.setText("正在刷新");
-			break;
-		default:
-			break;
-		}
-	}
-
-	/**
-	 * 箭头旋转动画
-	 */
-	private void initAnimation() {
-		upAnimation = new RotateAnimation(0, -180, Animation.RELATIVE_TO_SELF,
-				0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-		upAnimation.setDuration(200);
-		upAnimation.setFillAfter(true);
-
-		downAnimation = new RotateAnimation(-180, -360,
-				Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
-				0.5f);
-		downAnimation.setDuration(200);
-		downAnimation.setFillAfter(true);
-	}
+    // 头部高度
+    private int headViewHeight;
 
 
-	@Override
-	public void onScrollStateChanged(AbsListView view, int scrollState) {
-		if (!isEnabledLoadMore) {
-			return;
-		}
-		//listView停止状态或惯性滑动状态
-		if (scrollState == SCROLL_STATE_IDLE
-				|| scrollState == SCROLL_STATE_FLING) {
-			//listView已到达最底部
-			if ((getLastVisiblePosition() == getCount() - 1) && !isLoadingMore) {
-				//展示脚布局
-				setSelection(getCount());
-				currentState = REFRESHING;
-				if (!isLoadingMore&&adapter != null) {
-					Log.e("======","3");
-					mFootView.setPadding(0, 0, 0, 0);
-					adapter.loadMore();
-					isLoadingMore = true;
-				}
-			}
-		}
-	}
-	@Override
-	public void onScroll(AbsListView view, int firstVisibleItem,
-						 int visibleItemCount, int totalItemCount) {
+    // 状态
+    private int state = NONE;
 
-	}
+    /**
+     * 标志初始位置已经纪录，一次滑动中纪录一次。
+     * 为了更好的处理滑动，根据需要，不在ACTION_DOWN纪录初始位置<br/>
+     * 而是在ACTION_MOVE中第一次符合条件的触发中纪录初始位置
+     */
+    private boolean isStartRecorded = false;
 
-	/**
-	 * 是否启用下拉刷新
-	 * @param isEnable
-	 */
-	public void setEnabledPullDownRefresh(boolean isEnable) {
-		isEnabledPullDownRefresh = isEnable;
-	}
+    // 用于记录滑动开始时候的Y值
+    private float startY;
 
-	/**
-	 * 是否启用加载更多
-	 * @param isEnable
-	 */
-	public void setEnabledLoadMore(boolean isEnable) {
-		isEnabledLoadMore = isEnable;
-	}
+    /**
+     * 自定义属性，是否由用户自己控制添加下拉刷新Header<br/>
+     * <p/>
+     * 默认为false，下拉刷新Header会在构造函数中添加到PullListView中，作为第一个Header，显示在最上部<br/>
+     * 如果用户添加了额外的Header，额外的Header会在下拉刷新Header之下。<br/>
+     * 用户有时需要控制添加Header的顺序,可以将此属性设置为true，并在合适的时机，主动调用addPullHeader()方法，去添加下拉刷新Header
+     */
+    private boolean addPullHeaderByUser = false;
+    /**
+     * 自定义属性<br/>
+     * 加载更多触发方式<br/>
+     * 默认为滑动到底部自动加载更多
+     */
+    private int getMoreType = GET_MORE_TYPE_AUTO;
 
-	protected abstract V getView(Context context,int position,T data);
-	protected abstract V update(V v, int position, T data);
+    /**
+     * 判断下拉刷新状态是由初始状态转变而来，还是由松开刷新状态转变而来<br/>
+     * true 表示由松开刷新状态转变而来
+     */
+    private boolean isFromReleaseToRefresh;
 
-	public abstract void refresh(AutoFreshDataAdapter<T,V> autoFreshDataAdapter);
 
-	public abstract void loadMore(AutoFreshDataAdapter<T,V> autoFreshDataAdapter);
+    // 是否已经添加了下拉刷新header标志
+    private boolean addPullHeaderFlag = false;
+
+    // 是否已经添加了加载更多footer标志
+    private boolean addGetMoreFooterFlag = false;
+
+    // 是否还有更多数据标志
+    private boolean hasMoreDataFlag = true;
+
+    /**
+     * Scroll时到达最后一个Item的次数，只有第一次能触发自动刷新
+     */
+    private int reachLastPositionCount = 0;
+
+    private OnRefreshListener refreshListener;
+    private OnGetMoreListener getMoreListener;
+
+    private boolean canRefresh;
+    private boolean isGetMoreing = false;
+
+    public PullListView(Context context) {
+        this(context, null, 0);
+    }
+
+    public PullListView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public PullListView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(context, attrs);
+    }
+
+    /**
+     * 初始化
+     *
+     * @param context
+     */
+    private void init(Context context, AttributeSet attrs) {
+        //获取属性
+        TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.PullListView, 0, 0);
+        if (arr != null) {
+            addPullHeaderByUser = arr.getBoolean(R.styleable.PullListView_addPullHeaderByUser, addPullHeaderByUser);
+            getMoreType = arr.getInt(R.styleable.PullListView_getMoreType, GET_MORE_TYPE_AUTO);
+            arr.recycle();
+        }
+        initAnimation();
+        inflater = LayoutInflater.from(context);
+
+        /**
+         * 头部
+         */
+        headView = (LinearLayout) inflater.inflate(R.layout.pull_list_view_head, null);
+        ivHeadArrow = (ImageView) headView.findViewById(R.id.iv_head_arrow);
+        pbHeadRefreshing = (ProgressBar) headView.findViewById(R.id.pb_head_refreshing);
+        tvHeadTitle = (TextView) headView.findViewById(R.id.tv_head_title);
+        measureView(headView);
+        headViewHeight = headView.getMeasuredHeight();
+        headView.setPadding(0, -headViewHeight, 0, 0);
+        headView.invalidate();
+
+        if (!addPullHeaderByUser) {
+            addHeaderView(headView, null, false);
+            addPullHeaderFlag = true;
+        }
+
+        /**
+         * 底部
+         */
+        footView = inflater.inflate(R.layout.pull_list_view_foot, this, false);
+        tvFootTitle = (TextView) footView.findViewById(R.id.tv_foot_title);
+        pbFootRefreshing = (ProgressBar) footView.findViewById(R.id.pb_foot_refreshing);
+        footView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (checkCanClickGetMore()) {
+                    getMore();
+                }
+            }
+        });
+
+
+        // 滑动监听
+        setOnScrollListener(new OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                doOnScrollStateChanged(view, scrollState);
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                doOnScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+
+            }
+        });
+
+        state = NONE;
+        canRefresh = false;
+    }
+
+    /**
+     * 初始化动画
+     */
+    private void initAnimation() {
+        // 旋转
+        animation = new RotateAnimation(-180, 0, RotateAnimation.RELATIVE_TO_SELF, 0.5f, RotateAnimation.RELATIVE_TO_SELF, 0.5f);
+        animation.setInterpolator(new LinearInterpolator());
+        animation.setDuration(300);
+        animation.setFillAfter(true);
+
+        //反向旋转
+        reverseAnimation = new RotateAnimation(0, -180, RotateAnimation.RELATIVE_TO_SELF, 0.5f, RotateAnimation.RELATIVE_TO_SELF, 0.5f);
+        reverseAnimation.setInterpolator(new LinearInterpolator());
+        reverseAnimation.setDuration(300);
+        reverseAnimation.setFillAfter(true);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        // 不可下拉刷新
+        if (!canRefresh) {
+            return super.dispatchTouchEvent(event);
+        }
+
+        int action = event.getAction();
+        float tempY = event.getRawY();
+
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                break;
+
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                if (state == PULL_TO_REFRESH) {
+                    state = NONE;
+                    changeHeaderViewByState();
+                } else if (state == RELEASE_TO_REFRESH) {
+                    state = REFRESHING;
+                    changeHeaderViewByState();
+                    refresh();
+                }
+                isStartRecorded = false;
+                isFromReleaseToRefresh = false;
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                if (!checkCanPullDown() || state == REFRESHING) {
+                    break;
+                }
+                if (!isStartRecorded) {
+                    startY = tempY;
+                    Log.v(TAG, "在开始滑动时记录初始位置");
+                    isStartRecorded = true;
+                }
+                float deltaY = tempY - startY;
+                float realDeltaY = deltaY / RATIO;
+
+                // 初始状态下
+                if (state == NONE) {
+                    if (realDeltaY > 0) {
+                        state = PULL_TO_REFRESH;
+                        changeHeaderViewByState();
+                        Log.v(TAG, "由初始状态转变为下拉刷新状态");
+                    }
+                }
+                // 还没有到达显示松开刷新的时候PULL_TO_REFRESH状态
+                else if (state == PULL_TO_REFRESH) {
+
+                    headView.setPadding(0, -headViewHeight + (int) realDeltaY, 0, 0);
+
+                    // 下拉到可以进入RELEASE_TO_REFRESH的状态
+                    if (realDeltaY >= headViewHeight) {
+                        state = RELEASE_TO_REFRESH;
+                        isFromReleaseToRefresh = true;
+                        changeHeaderViewByState();
+                        Log.v(TAG, "下拉刷新转变到松开刷新状态");
+                    }
+                    // 上推到顶了
+                    else if (realDeltaY <= 0) {
+                        state = NONE;
+                        changeHeaderViewByState();
+                        Log.v(TAG, "下拉刷新转变到初始状态");
+                    }
+
+                }
+                // 可以松手去刷新了
+                else if (state == RELEASE_TO_REFRESH) {
+
+                    headView.setPadding(0, -headViewHeight + (int) realDeltaY, 0, 0);
+
+                    // 往上推了，推到了屏幕足够掩盖head的程度，但是还没有推到全部掩盖的地步
+                    if (realDeltaY < headViewHeight && realDeltaY > 0) {
+                        state = PULL_TO_REFRESH;
+                        changeHeaderViewByState();
+                        Log.v(TAG, "由松开刷新状态转变到下拉刷新状态");
+                    }
+                    // 一下子推到顶了
+                    else if (realDeltaY <= 0) {
+                        state = NONE;
+                        changeHeaderViewByState();
+                        Log.v(TAG, "由松开刷新状态转变到初始状态");
+                    }
+                }
+
+                break;
+        }
+
+        return super.dispatchTouchEvent(event);
+    }
+
+
+    // 当状态改变时候，调用该方法，以更新界面
+    private void changeHeaderViewByState() {
+        switch (state) {
+            case NONE:
+                headView.setPadding(0, -1 * headViewHeight, 0, 0);
+                pbHeadRefreshing.setVisibility(View.GONE);
+                ivHeadArrow.clearAnimation();
+                ivHeadArrow.setImageResource(R.drawable.pull_list_view_progressbar_bg);
+                tvHeadTitle.setText("下拉刷新");
+                break;
+
+            case PULL_TO_REFRESH:
+                pbHeadRefreshing.setVisibility(View.GONE);
+                tvHeadTitle.setVisibility(View.VISIBLE);
+                ivHeadArrow.clearAnimation();
+                ivHeadArrow.setVisibility(View.VISIBLE);
+                tvHeadTitle.setText("下拉刷新");
+                // 是由RELEASE_To_REFRESH状态转变来的
+                if (isFromReleaseToRefresh) {
+                    isFromReleaseToRefresh = false;
+                    ivHeadArrow.clearAnimation();
+                    ivHeadArrow.startAnimation(reverseAnimation);
+                }
+                break;
+
+            case RELEASE_TO_REFRESH:
+                ivHeadArrow.setVisibility(View.VISIBLE);
+                pbHeadRefreshing.setVisibility(View.GONE);
+                tvHeadTitle.setVisibility(View.VISIBLE);
+
+                ivHeadArrow.clearAnimation();
+                ivHeadArrow.startAnimation(animation);
+
+                tvHeadTitle.setText("松开刷新");
+
+                break;
+
+            case REFRESHING:
+
+                headView.setPadding(0, 0, 0, 0);
+
+                pbHeadRefreshing.setVisibility(View.VISIBLE);
+                ivHeadArrow.clearAnimation();
+                ivHeadArrow.setVisibility(View.GONE);
+                tvHeadTitle.setText("正在刷新...");
+
+                break;
+
+        }
+    }
+
+    // 刷新
+    private void refresh() {
+        //刷新回调
+        if (refreshListener != null) {
+            refreshListener.onRefresh();
+        }
+
+        //加载更多充值
+        if (footView != null) {
+            footView.setVisibility(View.VISIBLE);
+            pbFootRefreshing.setVisibility(View.GONE);
+            tvFootTitle.setText("加载更多");
+            isGetMoreing = false;
+            hasMoreDataFlag = true;
+        }
+    }
+
+    // 加载更多
+    private void getMore() {
+        //加载更多回调
+        if (getMoreListener != null) {
+            isGetMoreing = true;
+            pbFootRefreshing.setVisibility(View.VISIBLE);
+            tvFootTitle.setText("正在加载...");
+            getMoreListener.onGetMore();
+
+        }
+    }
+
+    // 测量视图
+    private void measureView(View child) {
+        ViewGroup.LayoutParams p = child.getLayoutParams();
+        if (p == null) {
+            p = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        int childWidthSpec = ViewGroup.getChildMeasureSpec(0, 0 + 0, p.width);
+        int lpHeight = p.height;
+        int childHeightSpec;
+        if (lpHeight > 0) {
+            childHeightSpec = MeasureSpec.makeMeasureSpec(lpHeight, MeasureSpec.EXACTLY);
+        } else {
+            childHeightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+        }
+        child.measure(childWidthSpec, childHeightSpec);
+    }
+
+    /**
+     * 判断是否可以下拉<br/>
+     * 也就是判断ListView是否滑动到了顶部
+     *
+     * @return
+     */
+    private boolean checkCanPullDown() {
+        if (getFirstVisiblePosition() > 0) {
+            return false;
+        }
+        return !canScroll(-1);
+    }
+
+    /**
+     * 判断是否可以自动加载更多<br/>
+     *
+     * @return
+     */
+    private boolean checkCanAutoGetMore() {
+        if (getMoreType != GET_MORE_TYPE_AUTO) {
+            return false;
+        }
+        if (footView == null) {
+            return false;
+        }
+        if (getMoreListener == null) {
+            return false;
+        }
+        if (isGetMoreing) {
+            return false;
+        }
+        if (!hasMoreDataFlag) {
+            return false;
+        }
+        if (getAdapter() == null) {
+            return false;
+        }
+        if (!canScroll(1) && !canScroll(-1)) {
+            return false;
+        }
+        if (getLastVisiblePosition() != getAdapter().getCount() - 1) {
+            return false;
+        }
+        if (reachLastPositionCount != 1) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 判断是否可以点击加载更多
+     *
+     * @return
+     */
+    private boolean checkCanClickGetMore() {
+        if (getMoreType != GET_MORE_TYPE_CLICK) {
+            return false;
+        }
+        if (footView == null) {
+            return false;
+        }
+        if (getMoreListener == null) {
+            return false;
+        }
+        if (getAdapter() == null) {
+            return false;
+        }
+        if (isGetMoreing) {
+            return false;
+        }
+        if (!hasMoreDataFlag) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 判断ListView是否可以滑动
+     *
+     * @param direction
+     * @return
+     */
+    private boolean canScroll(int direction) {
+        final int childCount = getChildCount();
+        if (childCount == 0) {
+            return false;
+        }
+
+        final int firstPosition = getFirstVisiblePosition();
+        final int listPaddingTop = getPaddingTop();
+        final int listPaddingBottom = getPaddingTop();
+        final int itemCount = getAdapter().getCount();
+
+        if (direction > 0) {
+            final int lastBottom = getChildAt(childCount - 1).getBottom();
+            final int lastPosition = firstPosition + childCount;
+            return lastPosition < itemCount || lastBottom > getHeight() - listPaddingBottom;
+        } else {
+            final int firstTop = getChildAt(0).getTop();
+            return firstPosition > 0 || firstTop < listPaddingTop;
+        }
+    }
+
+    public void setCanRefresh(boolean canRefresh) {
+        this.canRefresh = canRefresh;
+    }
+
+    /**
+     * 代码触发下拉刷新操作<br/>
+     * 多用于首次进入页面的加载
+     */
+    public void performRefresh() {
+        state = REFRESHING;
+        changeHeaderViewByState();
+        refresh();
+    }
+
+    /**
+     * 设置下拉刷新监听器
+     *
+     * @param refreshListener
+     */
+    public void setOnRefreshListener(OnRefreshListener refreshListener) {
+        this.refreshListener = refreshListener;
+        canRefresh = true;
+    }
+
+    /**
+     * 设置加载更多监听器
+     *
+     * @param getMoreListener
+     */
+    public void setOnGetMoreListener(OnGetMoreListener getMoreListener) {
+        this.getMoreListener = getMoreListener;
+        if (!addGetMoreFooterFlag) {
+            addGetMoreFooterFlag = true;
+            this.addFooterView(footView);
+        }
+    }
+
+    /**
+     * 下拉刷新完成
+     */
+    public void refreshComplete() {
+        state = NONE;
+        changeHeaderViewByState();
+    }
+
+    /**
+     * 加载更多完成
+     */
+    public void getMoreComplete() {
+        pbFootRefreshing.setVisibility(View.GONE);
+        tvFootTitle.setText("加载更多");
+        isGetMoreing = false;
+    }
+
+    /**
+     * 设置没有更多的数据了<br/>
+     * 不再显示加载更多按钮
+     */
+    public void setNoMore() {
+        hasMoreDataFlag = false;
+        if (footView != null) {
+            footView.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * 显示加载更多按钮
+     */
+    public void setHasMore() {
+        hasMoreDataFlag = true;
+        if (footView != null) {
+            footView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * 重新添加下拉刷新头部
+     */
+    public void reAddPullHeaderView() {
+        if (headView != null) {
+            removeHeaderView(headView);
+            addHeaderView(headView, null, false);
+            addPullHeaderFlag = true;
+        }
+    }
+
+    /**
+     * 添加下拉刷新头部
+     */
+    public void addPullHeaderView() {
+        if (headView != null && !addPullHeaderFlag) {
+            addHeaderView(headView, null, false);
+            addPullHeaderFlag = true;
+        }
+    }
+
+
+    /**
+     * 如果项目中其他地方需要重新设置PullListView的OnScrollListener<br/>
+     * 请在新的listener中onScrollStateChanged方法内调用此方法，保证PullListView正常运行。
+     *
+     * @param view
+     * @param scrollState
+     */
+    public void doOnScrollStateChanged(AbsListView view, int scrollState) {
+    }
+
+    /**
+     * 如果项目中其他地方需要重新设置PullListView的OnScrollListener<br/>
+     * 请在新的listener中onScroll方法内调用此方法，保证PullListView正常运行。
+     *
+     * @param view
+     * @param firstVisibleItem
+     * @param visibleItemCount
+     * @param totalItemCount
+     */
+    public void doOnScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+        if (getAdapter() == null) {
+            return;
+        }
+
+        if (getLastVisiblePosition() == getAdapter().getCount() - 1) {
+            reachLastPositionCount++;
+        } else {
+            reachLastPositionCount = 0;
+        }
+
+
+        if (checkCanAutoGetMore()) {
+            getMore();
+        }
+
+
+    }
+    public static String rights(){
+        return "GPL V2 web site:https://github.com/grumoon/PullListView";
+    }
 }
+
