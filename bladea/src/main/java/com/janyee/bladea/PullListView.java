@@ -1,4 +1,4 @@
-package com.janyee.bladea.Views;
+package com.janyee.bladea;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -17,7 +17,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.janyee.bladea.R;
 
 
 public class PullListView extends ListView {
