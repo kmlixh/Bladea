@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Bladea.iml" filepath="$PROJECT_DIR$/Bladea.iml" />
       <module fileurl="file://$PROJECT_DIR$/bladea/bladea-bladea.iml" filepath="$PROJECT_DIR$/bladea/bladea-bladea.iml" />
-      <module fileurl="file://$PROJECT_DIR$/bladea/bladea-bladea.iml" filepath="$PROJECT_DIR$/bladea/bladea-bladea.iml" />
       <module fileurl="file://$PROJECT_DIR$/bladeatest/bladeatest.iml" filepath="$PROJECT_DIR$/bladeatest/bladeatest.iml" />
     </modules>
   </component>
