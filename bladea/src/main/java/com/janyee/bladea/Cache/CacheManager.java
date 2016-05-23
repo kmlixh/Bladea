@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.janyee.bladea.Dao.Dao;
 import com.janyee.bladea.Tools.Md5;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,22 @@ public class CacheManager {
         String id= Md5.getMd5(tClass.getCanonicalName());
         return (T) get(id);
     }
+    public <T> List<T> getList(Class<T> tClass){
+        String id="List:"+tClass.getCanonicalName();
+        List<T> obj=new ArrayList<>();
+
+        Dao dao=Dao.getInstance(context);
+        try{
+            CacheInfo info=dao.fetch(CacheInfo.class,id);
+            List<T> temp= JSON.parseArray(info.getInfo(),tClass);
+            if(temp!=null){
+                obj=temp;
+            }
+        }catch (Exception e){
+
+        }
+        return obj;
+    }
     public void put(String id,Object object) throws Exception {
         if(object!=null){
             String className=object.getClass().getCanonicalName();
@@ -81,7 +98,7 @@ public class CacheManager {
             Dao.getInstance(context).save(info);
         }
     }
-    public <T> void put(String id,List<T> tList) throws Exception {
+    public <T> void putList(String id,List<T> tList) throws Exception {
         if(tList!=null&&tList.size()>0){
             String className="List:"+tList.get(0).getClass().getCanonicalName();
             CacheInfo info=new CacheInfo();
@@ -92,7 +109,7 @@ public class CacheManager {
         }
 
     }
-    public <T> void put(List<T> tList) throws Exception {
+    public <T> void putList(List<T> tList) throws Exception {
         String id="List:"+tList.get(0).getClass().getCanonicalName();
         put(id,tList);
     }
