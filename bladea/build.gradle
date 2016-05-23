@@ -28,9 +28,8 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.3.0'
-    androidTestCompile 'com.alibaba:fastjson:1.2.10'
-    androidTestCompile 'junit:junit:4.12'
     compile 'com.alibaba:fastjson:1.2.10'
+    androidTestCompile 'junit:junit:4.12'
 }
 def siteUrl = 'https://github.com/kmlixh/Bladea'      // 项目的主页
 def gitUrl = 'https://github.com/kmlixh/Bladea.git'   // Git仓库的url
