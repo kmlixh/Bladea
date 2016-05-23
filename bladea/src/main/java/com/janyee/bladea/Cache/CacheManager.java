@@ -98,7 +98,7 @@ public class CacheManager {
             Dao.getInstance(context).save(info);
         }
     }
-    public <T> void putList(String id,List<T> tList) throws Exception {
+    public <T> void put(String id,List<T> tList) throws Exception {
         if(tList!=null&&tList.size()>0){
             String className="List:"+tList.get(0).getClass().getCanonicalName();
             CacheInfo info=new CacheInfo();
@@ -109,7 +109,7 @@ public class CacheManager {
         }
 
     }
-    public <T> void putList(List<T> tList) throws Exception {
+    public <T> void put(List<T> tList) throws Exception {
         String id="List:"+tList.get(0).getClass().getCanonicalName();
         put(id,tList);
     }
