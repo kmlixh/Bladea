@@ -27,7 +27,7 @@ public abstract class SmartAdapter<K,V extends View> extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public K getItem(int position) {
         if(viewData!=null){
             return viewData.get(position);
         }else{
@@ -42,6 +42,12 @@ public abstract class SmartAdapter<K,V extends View> extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        return null;
+        if (null == convertView) {
+            convertView = getView( context,position, mlist.get(position));
+        } else {
+            update((V) convertView,position,mlist.get(position));
+        }
+
+        return convertView;
     }
 }

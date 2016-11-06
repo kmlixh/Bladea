@@ -52,45 +52,49 @@ public class Dao {
         return new Dao(context, null, null);
     }
 
-    public static Dao getInstance(Context context, DaoInitOptions options, Class... classes) throws Exception {
+    public static Dao getInstance(Context context, DaoInitOptions options, Class... classes) {
         return new Dao(context, options, classes);
     }
 
-    public void preCachingClass(Class... classes) throws Exception {
+    public void preCachingClass(Class... classes){
         init(classes);
     }
 
-    private synchronized void init(Class... classes) throws Exception {
+    private synchronized void init(Class... classes) {
 
-        if (classes == null) {
-            return;
-        }
-        for (Class classz : classes) {
-            if (!classz.equals(TableVersion.class)) {
-                TableModule module = SqlFactory.getTableModule(classz);
-                if (sqliteEngine.checkTableExsist(module)) {
-                    if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {
-                        List info = sqliteEngine.query(module, SqlFactory.getQuery(classz));
-                        dropTable(classz);
-                        create(module.getBoundClass());
-                        save(info);
+        try{
+            if (classes == null) {
+                return;
+            }
+            for (Class classz : classes) {
+                if (!classz.equals(TableVersion.class)) {
+                    TableModule module = SqlFactory.getTableModule(classz);
+                    if (sqliteEngine.checkTableExsist(module)) {
+                        if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {
+                            List info = sqliteEngine.query(module, SqlFactory.getQuery(classz));
+                            dropTable(classz);
+                            create(module.getBoundClass());
+                            save(info);
 
+                        } else {
+                            TableVersion version = new TableVersion();
+                            version.setVers(module.getMd5());
+                            version.setTabs(module.getTableName());
+                            save(version);
+                        }
                     } else {
+                        create(module.getBoundClass());
                         TableVersion version = new TableVersion();
-                        version.setVers(module.getMd5());
                         version.setTabs(module.getTableName());
+                        version.setVers(module.getMd5());
                         save(version);
                     }
-                } else {
-                    create(module.getBoundClass());
-                    TableVersion version = new TableVersion();
-                    version.setTabs(module.getTableName());
-                    version.setVers(module.getMd5());
-                    save(version);
+                    SqlFactory.versionMap.put(module.getTableName(), module.getMd5());
                 }
-                SqlFactory.versionMap.put(module.getTableName(), module.getMd5());
-            }
 
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
