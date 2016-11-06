@@ -1,10 +1,13 @@
 package com.janyee.bladea.Dao;
 
+import android.content.Context;
+
 import com.janyee.bladea.Cast.Castor;
 import com.janyee.bladea.Dao.Condition.Condition;
 import com.janyee.bladea.Dao.Exception.DaoException;
 import com.janyee.bladea.Dao.Module.LinkModule;
 import com.janyee.bladea.Dao.Module.TableModule;
+import com.janyee.bladea.Dao.Pojo.TableVersion;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +20,7 @@ import java.util.Map;
 public class SqlFactory {
     static Map<Class, TableModule> tableMap = null;
     static Map<String, TableModule> tableMap2 = null;
+    public static Context context;
     public static Map<String, String> versionMap;
 
     public static Map<Class, TableModule> getTableMap() {
@@ -33,15 +37,48 @@ public class SqlFactory {
         if (module == null) {
             module = new TableModule(tClass);
             tableMap.put(tClass, module);
-            if (tableMap2.get(module.getTableName()) != null) {
-                throw new DaoException("Dumplicate Table '" + module.getTableName() + "' was find!");
-            } else {
-                tableMap2.put(module.getTableName(), module);
-            }
+            tableMap2.put(module.getTableName(),module);
         }
         return module;
     }
+    public static synchronized void init(Class... classes) {
 
+        try{
+            if (classes == null) {
+                return;
+            }
+            SqliteEngine sqliteEngine=new SqliteEngine(context);
+            for (Class classz : classes) {
+                if (!classz.equals(TableVersion.class)) {
+                    TableModule module = SqlFactory.getTableModule(classz);
+                    if (sqliteEngine.checkTableExsist(module)) {
+                        if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {
+                            List info = sqliteEngine.query(module, SqlFactory.getQuery(classz));
+                            Dao.getInstance()dropTable(classz);
+                            create(module.getBoundClass());
+                            save(info);
+
+                        } else {
+                            TableVersion version = new TableVersion();
+                            version.setVers(module.getMd5());
+                            version.setTabs(module.getTableName());
+                            save(version);
+                        }
+                    } else {
+                        create(module.getBoundClass());
+                        TableVersion version = new TableVersion();
+                        version.setTabs(module.getTableName());
+                        version.setVers(module.getMd5());
+                        save(version);
+                    }
+                    SqlFactory.versionMap.put(module.getTableName(), module.getMd5());
+                }
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     public static <T> TableModule<T> getTableModule(T t) throws Exception {
         TableModule module = getTableModule(t.getClass());
         module.setBoundValue(t);
