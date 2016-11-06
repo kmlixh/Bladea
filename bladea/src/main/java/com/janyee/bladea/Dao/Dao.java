@@ -48,7 +48,12 @@ public class Dao {
             e.printStackTrace();
         }
     }
-
+    private synchronized void init(Class classz){
+        TableModule tableModule=SqlFactory.getTableModule(classz);
+         if(!SqlFactory.versionMap.get(tableModule.getTableName()).equals(tableModule.getMd5())){
+            dropTable(classz)
+         }
+    }
     public static Dao getInstance(Context context) {
         return new Dao(context, null, null);
     }
@@ -272,7 +277,7 @@ public class Dao {
         }
     }
 
-    public <T> int dropTable(Class<T> tClass) throws Exception {
+    public <T> int dropTable(Class<T> tClass){
         StringBuilder sqlModuleList = SqlFactory.getDrop(tClass);
         return sqliteEngine.Merge(SqlFactory.getTableModule(tClass), sqlModuleList);
     }

@@ -27,7 +27,7 @@ public class SqlFactory {
         return tableMap;
     }
 
-    public static <T> TableModule<T> getTableModule(Class<T> tClass) throws Exception {
+    public static <T> TableModule<T> getTableModule(Class<T> tClass){
         if (tableMap == null) {
             tableMap = new HashMap<>();
             tableMap2 = new HashMap<>();
@@ -35,50 +35,17 @@ public class SqlFactory {
 
         TableModule module = tableMap.get(tClass);
         if (module == null) {
-            module = new TableModule(tClass);
-            tableMap.put(tClass, module);
-            tableMap2.put(module.getTableName(),module);
+            try{
+                module = new TableModule(tClass);
+                tableMap.put(tClass, module);
+                tableMap2.put(module.getTableName(),module);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
         return module;
     }
-    public static synchronized void init(Class... classes) {
 
-        try{
-            if (classes == null) {
-                return;
-            }
-            SqliteEngine sqliteEngine=new SqliteEngine(context);
-            for (Class classz : classes) {
-                if (!classz.equals(TableVersion.class)) {
-                    TableModule module = SqlFactory.getTableModule(classz);
-                    if (sqliteEngine.checkTableExsist(module)) {
-                        if (SqlFactory.versionMap.get(module.getTableName()) != null && !SqlFactory.versionMap.get(module.getTableName()).equals(module.getMd5()) && options.isAutoUpdateTableStructure()) {
-                            List info = sqliteEngine.query(module, SqlFactory.getQuery(classz));
-                            Dao.getInstance()dropTable(classz);
-                            create(module.getBoundClass());
-                            save(info);
-
-                        } else {
-                            TableVersion version = new TableVersion();
-                            version.setVers(module.getMd5());
-                            version.setTabs(module.getTableName());
-                            save(version);
-                        }
-                    } else {
-                        create(module.getBoundClass());
-                        TableVersion version = new TableVersion();
-                        version.setTabs(module.getTableName());
-                        version.setVers(module.getMd5());
-                        save(version);
-                    }
-                    SqlFactory.versionMap.put(module.getTableName(), module.getMd5());
-                }
-
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
     public static <T> TableModule<T> getTableModule(T t) throws Exception {
         TableModule module = getTableModule(t.getClass());
         module.setBoundValue(t);
@@ -264,14 +231,14 @@ public class SqlFactory {
         return stringBuilder;
     }
 
-    protected static <T> StringBuilder getDrop(Class<T> tClass) throws Exception {
+    protected static <T> StringBuilder getDrop(Class<T> tClass) {
         TableModule tableModule = getTableModule(tClass);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("DROP TABLE IF EXISTS [" + tableModule.getTableName() + "];");
         return stringBuilder;
     }
 
-    protected static StringBuilder getDrop(String table) throws Exception {
+    protected static StringBuilder getDrop(String table) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("DROP TABLE IF EXISTS [" + table + "];");
         return stringBuilder;

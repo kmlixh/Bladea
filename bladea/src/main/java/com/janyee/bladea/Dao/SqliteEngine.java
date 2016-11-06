@@ -107,7 +107,7 @@ class SqliteEngine {
         }
     }
 
-    protected boolean checkTableExsist(TableModule module) throws Exception {
+    protected boolean checkTableExsist(TableModule module){
         boolean result = false;
         SQLiteOpenHelper dbHelper = module.getFactory().getOpenHelper(context);
         SQLiteDatabase database = null;
