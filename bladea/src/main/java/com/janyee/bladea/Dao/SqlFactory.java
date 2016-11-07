@@ -18,48 +18,7 @@ import java.util.Map;
  * Created by kmlixh on 2015/10/8.
  */
 public class SqlFactory {
-    static Map<Class, TableModule> tableMap = null;
-    static Map<String, TableModule> tableMap2 = null;
-    public static Context context;
-    public static Map<String, String> versionMap;
 
-    public static Map<Class, TableModule> getTableMap() {
-        return tableMap;
-    }
-
-    public static <T> TableModule<T> getTableModule(Class<T> tClass){
-        if (tableMap == null) {
-            tableMap = new HashMap<>();
-            tableMap2 = new HashMap<>();
-        }
-
-        TableModule module = tableMap.get(tClass);
-        if (module == null) {
-            try{
-                module = new TableModule(tClass);
-                tableMap.put(tClass, module);
-                tableMap2.put(module.getTableName(),module);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-        return module;
-    }
-
-    public static <T> TableModule<T> getTableModule(T t) throws Exception {
-        TableModule module = getTableModule(t.getClass());
-        module.setBoundValue(t);
-        return module;
-    }
-
-    public static TableModule getTableModule(String tableName) {
-        if (tableMap2 != null) {
-            TableModule module = tableMap2.get(tableName);
-            return module;
-        } else {
-            return null;
-        }
-    }
 
     protected static <T> StringBuilder getLinkQuery(T t, LinkModule linkModule) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
@@ -73,11 +32,10 @@ public class SqlFactory {
         return stringBuilder;
     }
 
-    protected static <T> StringBuilder getQuery(Class<T> tClass) throws Exception {
-        return getQuery(tClass, null);
+    protected static <T> StringBuilder getQuery(TableModule tableModule) throws Exception {
+        return getQuery(tableModule, null);
     }
-    protected static <T> StringBuilder getQuery(Class<T> tClass, Condition condition) throws Exception {
-        TableModule tableModule = getTableModule(tClass);
+    protected static StringBuilder getQuery(TableModule tableModule, Condition condition) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("SELECT * FROM ").append("["+tableModule.getTableName()+"]");
         if (condition != null) {
@@ -96,39 +54,32 @@ public class SqlFactory {
         stringBuilder.append(";");
         return stringBuilder;
     }
-    protected static <T> StringBuilder getCount(Class<T> tClass, Condition condition) throws Exception {
-        TableModule tableModule = getTableModule(tClass);
+    protected static <T> StringBuilder getCount(TableModule tableModule, Condition condition) throws Exception {
         return getCount(tableModule.getTableName(),condition);
     }
 
-    protected static <T> StringBuilder getFetch(Class<T> tClass, Condition condition) throws Exception {
+    protected static  StringBuilder getFetch(TableModule tableModule, Condition condition) throws Exception {
         condition.Pager(0, 1);
-        return getQuery(tClass, condition);
+        return getQuery(tableModule, condition);
     }
-    protected static <T> StringBuilder getFetch(Class<T> tClass,String id) throws Exception {
-        TableModule module=getTableModule(tClass);
+    protected static StringBuilder getFetch(TableModule module,String id) throws Exception {
         if(!module.getPrimaryCell().getBoundField().getType().equals(String.class)){
             throw new DaoException("can't use a String value as id for this Pojo!");
         }else{
-            Object obj=tClass.newInstance();
-            module.getPrimaryCell().bindField(obj,id);
-            return getFetch(obj);
+            return getFetch(module,id);
         }
     }
-    protected static <T> StringBuilder getFetch(Class<T> tClass,int id) throws Exception {
-        TableModule module=getTableModule(tClass);
+    protected static StringBuilder getFetch(TableModule module,int id) throws Exception {
         if(!Castor.isNumberic(module.getPrimaryCell().getBoundField().getType())){
             throw new DaoException("can't use a number value as id for this Pojo!");
         }else{
-            Object obj=tClass.newInstance();
-            module.getPrimaryCell().bindField(obj,id);
-            return getFetch(obj);
+            return getFetch(module,id);
         }
     }
-    protected static StringBuilder getFetch(Object obj) throws Exception {
-        Condition condition = Condition.getPrimaryCondition(obj);
+    protected static StringBuilder getFetch(TableModule module,Object value) throws Exception {
+        Condition condition = Condition.getPrimaryCondition(module,value);
         condition.Pager(0, 1);
-        return getQuery(obj.getClass(), condition);
+        return getQuery(module, condition);
     }
     protected static StringBuilder getInsert(Object obj) throws Exception {
         return getSave(obj).replace(0,7,"INSERT");
@@ -139,7 +90,7 @@ public class SqlFactory {
         } else if (obj instanceof Class) {
             throw new DaoException("you can't save a 'Class Type' object!");
         } else {
-            TableModule tableModule = getTableModule(obj);
+            TableModule tableModule = Dao.getTableModule(obj);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("REPLACE INTO [" + tableModule.getTableName() + "] ");
             stringBuilder.append(tableModule.getInsertList());
@@ -176,26 +127,24 @@ public class SqlFactory {
         return getSave(objs.toArray());
     }
 
-    protected static <T> StringBuilder getDelete(Class<T> tClass) throws Exception {
-        return getDelete(tClass, Condition.Where());
+    protected static <T> StringBuilder getDelete(TableModule tableModule) throws Exception {
+        return getDelete(tableModule, Condition.Where());
     }
 
-    protected static <T> StringBuilder getDelete(Class<T> tClass, Condition condition) throws Exception {
+    protected static <T> StringBuilder getDelete(Object obj, Condition condition) throws Exception {
+        TableModule tableModule=Dao.getTableModule(obj);
         StringBuilder stringBuilder = new StringBuilder();
-        TableModule tableModule = getTableModule(tClass);
         stringBuilder.append("DELETE FROM [" + tableModule.getTableName() + "] ");
         if (condition != null) {
             stringBuilder.append(condition.toString() + ";");
         }
         return stringBuilder;
     }
-    protected static <T> StringBuilder getDelete(Class<T> tClass,String id) throws Exception {
-        TableModule tableModule = getTableModule(tClass);
-        return getDelete(tClass,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
+    protected static <T> StringBuilder getDelete(TableModule tableModule,String id) throws Exception {
+        return getDelete(tableModule,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
     }
-    protected static <T> StringBuilder getDelete(Class<T> tClass,int id) throws Exception {
-        TableModule tableModule = getTableModule(tClass);
-        return getDelete(tClass,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
+    protected static <T> StringBuilder getDelete(TableModule tableModule,int id) throws Exception {
+        return getDelete(tableModule,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
     }
     protected static <T> StringBuilder getDelete(T obj) throws Exception {
         Condition condition = Condition.getPrimaryCondition(obj);
@@ -207,6 +156,7 @@ public class SqlFactory {
     protected static List<StringBuilder> getDelete(Object[] objs) throws Exception {
         List<StringBuilder> moduleList = new ArrayList<>();
         if (objs != null && objs.length > 0) {
+            TableModule tableModule=Dao.getTableModule(objs[0]);
             for (Object obj : objs) {
                 moduleList.add(getDelete(obj));
             }
@@ -214,8 +164,7 @@ public class SqlFactory {
         return moduleList;
     }
 
-    protected static <T> StringBuilder getCreate(Class<T> tClass) throws Exception {
-        TableModule tableModule = getTableModule(tClass);
+    protected static <T> StringBuilder getCreate(TableModule tableModule) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("CREATE TABLE [" + tableModule.getTableName() + "] (");
         stringBuilder.append(tableModule.getCreateList() + ") ");
@@ -223,16 +172,14 @@ public class SqlFactory {
     }
 
     //CREATE TABLE IF NOT EXISTS
-    protected static <T> StringBuilder getCreateIfNotExists(Class<T> tClass) throws Exception {
-        TableModule tableModule = getTableModule(tClass);
+    protected static <T> StringBuilder getCreateIfNotExists(TableModule tableModule) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("CREATE TABLE IF NOT EXISTS [" + tableModule.getTableName() + "] (");
         stringBuilder.append(tableModule.getCreateList() + ") ");
         return stringBuilder;
     }
 
-    protected static <T> StringBuilder getDrop(Class<T> tClass) {
-        TableModule tableModule = getTableModule(tClass);
+    protected static <T> StringBuilder getDrop(TableModule tableModule) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("DROP TABLE IF EXISTS [" + tableModule.getTableName() + "];");
         return stringBuilder;

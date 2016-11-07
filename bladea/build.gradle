@@ -4,12 +4,12 @@ apply plugin: 'com.jfrog.bintray'
 version = "1.2,0"
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.3'
+    compileSdkVersion 24
+    buildToolsVersion '24.0.3'
     resourcePrefix "janyee.com"
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 23
+        minSdkVersion 19
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
     }
@@ -27,13 +27,13 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.alibaba:fastjson:1.2.10'
     androidTestCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:24.0.0'
 }
 def siteUrl = 'https://github.com/kmlixh/Bladea'      // 项目的主页
 def gitUrl = 'https://github.com/kmlixh/Bladea.git'   // Git仓库的url
-def dsc='Android敏捷开发框架(Android Agile Development Framework)'
+def dsc='Android敏捷开发框架'
 group = "com.janyee.bladea"
 install {
     repositories.mavenInstaller {
@@ -73,18 +73,16 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    options.encoding = "utf-8"
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-javadoc {
     options {
-        encoding "UTF-8"
-        charSet 'UTF-8'
+        encoding "utf-8"
+        charSet 'utf-8'
         author true
         version true
+        failOnError false
         links "http://docs.oracle.com/javase/7/docs/api"
     }
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'

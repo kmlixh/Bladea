@@ -2,10 +2,12 @@ package com.janyee.bladea.Dao.Condition;
 
 
 import com.janyee.bladea.Cast.DaoCastor;
+import com.janyee.bladea.Dao.Dao;
 import com.janyee.bladea.Dao.Exception.DaoException;
 import com.janyee.bladea.Dao.Module.CellModule;
 import com.janyee.bladea.Dao.Module.TableModule;
 import com.janyee.bladea.Dao.SqlFactory;
+import com.janyee.bladea.Dao.annotation.Table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -102,10 +104,15 @@ public class Condition {
     }
 
     public static Condition getPrimaryCondition(Object obj) throws Exception {
-        TableModule tableModule = SqlFactory.getTableModule(obj);
-        if (tableModule.getPrimaryCell() != null) {
-            CellModule primary = tableModule.getPrimaryCell();
-            return Condition.Where(primary.getCellName(), "=", primary.getFieldValue(obj));
+        TableModule module= Dao.getTableModule(obj);
+        CellModule primary = module.getPrimaryCell();
+        Object value=primary.getFieldValue(obj);
+        return getPrimaryCondition(module,value);
+    }
+    public static Condition getPrimaryCondition(TableModule module,Object value){
+        if (module.getPrimaryCell() != null) {
+            CellModule primary = module.getPrimaryCell();
+            return Condition.Where(primary.getCellName(), "=",value);
         } else {
             return null;
         }

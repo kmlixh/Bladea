@@ -15,6 +15,14 @@ public class TableVersion {
     @Column
     String vers;
 
+    public TableVersion() {
+    }
+
+    public TableVersion(String tabs, String vers) {
+        this.tabs = tabs;
+        this.vers = vers;
+    }
+
     public String getTabs() {
         return tabs;
     }

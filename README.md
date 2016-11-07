@@ -4,14 +4,14 @@
 <dependency>
   <groupId>com.janyee.bladea</groupId>
   <artifactId>bladeaLib</artifactId>
-  <version>1.1</version>
+  <version>1.2.0</version>
   <type>pom</type>
 </dependency>
 ```
 Gradle:
 
 ```
-compile 'com.janyee.bladea:bladeaLib:1.1'
+compile 'com.janyee.bladea:bladeaLib:1.2.0'
 ```
 
 核心功能为数据库操作，灵感来自于[nutz](http://www.nutzam.com/)，举个简单的栗子：
