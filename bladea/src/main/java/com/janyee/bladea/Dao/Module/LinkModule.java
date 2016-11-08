@@ -16,9 +16,9 @@ public class LinkModule {
     TableModule dstModule;
     Field boundField;//默认要绑定数据的字段，可以是实体变量，也可以是List，数组
 
-    public LinkModule( TableModule holder, Field boundField,String localFieldName,String remoteFieldName,Class boundClass) throws Exception {
+    public LinkModule( TableModule holder, Field boundField,String localFieldName,String remoteFieldName,TableModule dstModule) throws Exception {
         this.holder=holder;
-        dstModule= SqlFactory.getTableModule(boundClass);
+        this.dstModule= dstModule;
         this.boundField=boundField;
         this.localFieldName=localFieldName;
         this.remoteFieldName=remoteFieldName;

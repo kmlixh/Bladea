@@ -1,125 +1,34 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
-version = "1.2,0"
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.3'
-    resourcePrefix "janyee.com"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
+
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 24
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 25
+        versionCode 12
+        versionName "1.2.1"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            debuggable false
-            jniDebuggable false
         }
-    }
-    productFlavors {
     }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.alibaba:fastjson:1.2.10'
-    androidTestCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:24.0.0'
+    testCompile 'junit:junit:4.12'
+
 }
-def siteUrl = 'https://github.com/kmlixh/Bladea'      // 项目的主页
-def gitUrl = 'https://github.com/kmlixh/Bladea.git'   // Git仓库的url
-def dsc='Android敏捷开发框架'
-group = "com.janyee.bladea"
-install {
-    repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
-        pom {
-            project {
-                packaging 'aar'
-                // Add your description here
-                name 'Bladea' 	//项目描述
-                description dsc
-                url siteUrl
-                // Set your license
-                licenses {
-                    license {
-                        name 'The GNU General Public License, Version 3'
-                        url 'http://www.gnu.org/licenses/gpl.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id 'kmlixh'		//填写的一些基本信息
-                        name '李兴华'
-                        email 'kmlixh@foxmail.com'
-                    }
-                }
-                scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
-                }
-            }
-        }
-    }
-}
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-task javadoc(type: Javadoc) {
-    options {
-        encoding "utf-8"
-        charSet 'utf-8'
-        author true
-        version true
-        failOnError false
-        links "http://docs.oracle.com/javase/7/docs/api"
-    }
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    configurations = [ 'archives']
-    pkg {
-        repo = "maven"
-        name = "com.janyee.Bladea"	//发布到JCenter上的项目名字
-        desc=dsc
-        issueTrackerUrl = "https://github.com/kmlixh/Bladea/issues"
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        publicDownloadNumbers = true
-        licenses = ["GPL-3.0"]
-        publish = true
-        version {
-            gpg {
-                sign = true //Determines whether to GPG sign the files. The default is false
-                passphrase = properties.getProperty("bintray.gpg.password") //Optional. The passphrase for GPG signing'
-            }
-            mavenCentralSync {
-                sync = true //Optional (true by default). Determines whether to sync the version to Maven Central.
-                user = properties.getProperty("bintray.oss.user") //OSS user token
-                password = properties.getProperty("bintray.oss.password") //OSS user password
-                close = '1'
-                //Optional property. By default the staging repository is closed and artifacts are released to Maven Central. You can optionally turn this behaviour off (by puting 0 as value) and release the version manually.
-            }
-        }
-    }
-}
+apply from: "bintrayUpload.gradle"

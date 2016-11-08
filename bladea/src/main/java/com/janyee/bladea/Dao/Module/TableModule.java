@@ -75,7 +75,7 @@ public class TableModule<T> {
                 }
                 if(ann instanceof Link){
                     String field=((Link)ann).localField();
-                    LinkModule module=new LinkModule(this,temp,((Link)ann).localField(),((Link) ann).targetField(),((Link) ann).target());
+                    LinkModule module=new LinkModule(this,temp,((Link)ann).localField(),((Link) ann).targetField(),new TableModule(((Link) ann).target()));
                     linkMap.put(field,module);
                 }
             }

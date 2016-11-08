@@ -81,58 +81,36 @@ public class SqlFactory {
         condition.Pager(0, 1);
         return getQuery(module, condition);
     }
-    protected static StringBuilder getInsert(Object obj) throws Exception {
-        return getSave(obj).replace(0,7,"INSERT");
+    protected static StringBuilder getInsert(TableModule tableModule) throws Exception {
+        return getSave(tableModule).replace(0,7,"INSERT");
     }
-    protected static StringBuilder getSave(Object obj) throws Exception {
-        if (obj == null) {
-            throw new DaoException("you can't save a NULL object");
-        } else if (obj instanceof Class) {
-            throw new DaoException("you can't save a 'Class Type' object!");
-        } else {
-            TableModule tableModule = Dao.getTableModule(obj);
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("REPLACE INTO [" + tableModule.getTableName() + "] ");
-            stringBuilder.append(tableModule.getInsertList());
-            return stringBuilder;
-        }
+    protected static StringBuilder getSave(TableModule tableModule) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("REPLACE INTO [" + tableModule.getTableName() + "] ");
+        stringBuilder.append(tableModule.getInsertList());
+        return stringBuilder;
     }
-    protected static <T> List<StringBuilder> getInsert(Object[] obj) throws Exception {
-       List<StringBuilder> info=getSave(obj);
+    protected static <T> List<StringBuilder> getInsert(TableModule<T>...tableModules) throws Exception {
+       List<StringBuilder> info=getSave(tableModules);
         for(StringBuilder builder:info){
             builder.replace(0,7,"INSERT");
         }
         return info;
     }
-    protected static <T> List<StringBuilder> getSave(T[] objs) throws Exception {
-        if (objs == null) {
-            throw new DaoException("you can't save a NULL object");
-        } else if (objs instanceof Class[]) {
-            throw new DaoException("you can't save a 'Class Type' object!");
-        } else if (objs.length > 0) {
-            List<StringBuilder> modules = new ArrayList<>();
-            for (Object obj : objs) {
-                StringBuilder stringBuilder = getSave(obj);
-                modules.add(stringBuilder);
-            }
-            return modules;
-        } else {
-            throw new DaoException("you can't save a zore Length objects!");
+    protected static <T> List<StringBuilder> getSave(TableModule<T>...tableModules) throws Exception {
+        List<StringBuilder> modules = new ArrayList<>();
+        for (TableModule<T> obj : tableModules) {
+            StringBuilder stringBuilder = getSave(obj);
+            modules.add(stringBuilder);
         }
-    }
-    protected static <T> List<StringBuilder> getInsert(List<T> objs) throws Exception {
-        return getInsert(objs.toArray());
-    }
-    protected static <T> List<StringBuilder> getSave(List<T> objs) throws Exception {
-        return getSave(objs.toArray());
+        return modules;
     }
 
     protected static <T> StringBuilder getDelete(TableModule tableModule) throws Exception {
         return getDelete(tableModule, Condition.Where());
     }
 
-    protected static <T> StringBuilder getDelete(Object obj, Condition condition) throws Exception {
-        TableModule tableModule=Dao.getTableModule(obj);
+    protected static <T> StringBuilder getDelete(TableModule tableModule, Condition condition) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("DELETE FROM [" + tableModule.getTableName() + "] ");
         if (condition != null) {
@@ -140,24 +118,11 @@ public class SqlFactory {
         }
         return stringBuilder;
     }
-    protected static <T> StringBuilder getDelete(TableModule tableModule,String id) throws Exception {
-        return getDelete(tableModule,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
-    }
-    protected static <T> StringBuilder getDelete(TableModule tableModule,int id) throws Exception {
-        return getDelete(tableModule,Condition.Where(tableModule.getPrimaryCell().getCellName(),"=",id));
-    }
-    protected static <T> StringBuilder getDelete(T obj) throws Exception {
-        Condition condition = Condition.getPrimaryCondition(obj);
-        return getDelete(obj.getClass(), condition);
-    }
-    protected static <T> List<StringBuilder> getDelete(List<T> objs)throws Exception{
-        return getDelete(objs.toArray());
-    }
-    protected static List<StringBuilder> getDelete(Object[] objs) throws Exception {
+
+    protected static List<StringBuilder> getDelete(TableModule...tableModules) throws Exception {
         List<StringBuilder> moduleList = new ArrayList<>();
-        if (objs != null && objs.length > 0) {
-            TableModule tableModule=Dao.getTableModule(objs[0]);
-            for (Object obj : objs) {
+        if (tableModules != null && tableModules.length > 0) {
+            for (TableModule obj : tableModules) {
                 moduleList.add(getDelete(obj));
             }
         }

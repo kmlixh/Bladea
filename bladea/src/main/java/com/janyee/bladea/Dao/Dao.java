@@ -9,6 +9,7 @@ import com.janyee.bladea.Dao.Pojo.TableVersion;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +25,27 @@ public class Dao {
     private static Map<String, TableModule> tableMap2 = null;
     private static Map<String, String> versionMap;
 
-
-
+    private <T> TableModule<T>[] getTableModuleList(Collection<T> tList){
+        List<TableModule<T>> moduleList =new ArrayList<>();
+        for(T t:tList){
+            moduleList.add(getTableModule(t));
+        }
+        TableModule<T>[] tss=new TableModule[moduleList.size()];
+        return moduleList.toArray(tss);
+    }
+    private <T> TableModule<T>[] getTableModuleList(T...ts){
+        List<TableModule<T>> moduleList =new ArrayList<>();
+        for(T t:ts){
+            moduleList.add(getTableModule(t));
+        }
+        TableModule<T>[] tss=new TableModule[moduleList.size()];
+        return moduleList.toArray(tss);
+    }
+    private <T> TableModule<T> getTableModule(T t){
+        TableModule module=getTableModule(t.getClass());
+        module.setBoundValue(t);
+        return module;
+    }
     private <T> TableModule<T> getTableModule(Class<T> tClass) {
         if (tableMap == null) {
             tableMap = new HashMap<>();
@@ -234,7 +254,7 @@ public class Dao {
     public <T> int insert(T t) {
         try {
             if (t != null) {
-                StringBuilder sb = SqlFactory.getInsert(t);
+                StringBuilder sb = SqlFactory.getInsert(getTableModule(t));
                 return sqliteEngine.Merge(getTableModule(t.getClass()), sb);
             } else {
                 return 0;
@@ -246,10 +266,10 @@ public class Dao {
 
     }
 
-    public <T> int insert(T[] ts) {
+    public <T> int insert(T...ts) {
         try {
             if (ts != null && ts.length > 0) {
-                List<StringBuilder> stringBuilders = SqlFactory.getInsert(ts);
+                List<StringBuilder> stringBuilders = SqlFactory.getInsert(getTableModuleList(ts));
                 return sqliteEngine.TransactionMerge(getTableModule(ts[0].getClass()), stringBuilders);
             } else {
                 return 0;
@@ -264,7 +284,7 @@ public class Dao {
     public <T> int insert(List<T> ts) {
         try {
             if (ts != null && ts.size() > 0) {
-                List<StringBuilder> stringBuilders = SqlFactory.getInsert(ts);
+                List<StringBuilder> stringBuilders = SqlFactory.getInsert(getTableModuleList(ts.toArray()));
                 return sqliteEngine.TransactionMerge(getTableModule(ts.get(0).getClass()), stringBuilders);
             } else {
                 return 0;
@@ -280,7 +300,7 @@ public class Dao {
     public <T> int save(T t) {
        try{
            if (t != null) {
-               StringBuilder sb = SqlFactory.getSave(t);
+               StringBuilder sb = SqlFactory.getSave(getTableModule(t));
                return sqliteEngine.Merge(getTableModule(t.getClass()), sb);
            } else {
                return 0;
@@ -294,7 +314,7 @@ public class Dao {
     public <T> int save(List<T> tList) {
         try{
             if (tList != null && tList.size() > 0) {
-                List<StringBuilder> builders = SqlFactory.getSave(tList.toArray());
+                List<StringBuilder> builders = SqlFactory.getSave(getTableModuleList(tList));
                 return sqliteEngine.TransactionMerge(getTableModule(tList.get(0).getClass()), builders);
             } else {
                 return 0;
@@ -308,7 +328,7 @@ public class Dao {
     public <T> int save(T[] ts){
         try{
             if (ts != null && ts.length > 0) {
-                List<StringBuilder> builders = SqlFactory.getSave(ts);
+                List<StringBuilder> builders = SqlFactory.getSave(getTableModuleList(ts));
                 return sqliteEngine.TransactionMerge(getTableModule(ts[0].getClass()), builders);
             } else {
                 return 0;
@@ -350,10 +370,10 @@ public class Dao {
         }
     }
 
-    public <T> int delete(Class<T> tClass) {
+    public <T> int delete(TableModule module) {
         try{
-            StringBuilder sb = SqlFactory.getDelete(tClass);
-            return sqliteEngine.Merge(getTableModule(tClass), sb);
+            StringBuilder sb = SqlFactory.getDelete(module);
+            return sqliteEngine.Merge(module, sb);
         }catch (Exception e){
             e.printStackTrace();
             return -1;
@@ -362,7 +382,7 @@ public class Dao {
 
     public <T> int delete(T t) {
         try{
-            StringBuilder sb = SqlFactory.getDelete(t);
+            StringBuilder sb = SqlFactory.getDelete(getTableModule(t));
             return sqliteEngine.Merge(getTableModule(t.getClass()), sb);
         }catch (Exception e){
             e.printStackTrace();
@@ -389,7 +409,7 @@ public class Dao {
     public <T> int delete(T[] tList) {
         try{
             if (tList != null && tList.length > 0) {
-                List<StringBuilder> moduleList = SqlFactory.getDelete(tList);
+                List<StringBuilder> moduleList = SqlFactory.getDelete(getTableModuleList(tList));
                 return sqliteEngine.TransactionMerge(getTableModule(tList[0].getClass()), moduleList);
             } else {
                 return 0;

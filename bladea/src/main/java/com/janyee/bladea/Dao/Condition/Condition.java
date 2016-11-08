@@ -103,12 +103,6 @@ public class Condition {
         return new ArrayList<Object>(CndsMap.values());
     }
 
-    public static Condition getPrimaryCondition(Object obj) throws Exception {
-        TableModule module= Dao.getTableModule(obj);
-        CellModule primary = module.getPrimaryCell();
-        Object value=primary.getFieldValue(obj);
-        return getPrimaryCondition(module,value);
-    }
     public static Condition getPrimaryCondition(TableModule module,Object value){
         if (module.getPrimaryCell() != null) {
             CellModule primary = module.getPrimaryCell();

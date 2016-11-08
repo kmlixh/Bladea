@@ -21,13 +21,14 @@ def projectPackaging = properties.getProperty("project.packaging")
 def projectSiteUrl = properties.getProperty("project.siteUrl")
 def projectGitUrl = properties.getProperty("project.gitUrl")
 def projectDescription = properties.getProperty("project.description")
-
+def userGroup=properties.getProperty("developer.group")
 def developerId = properties.getProperty("developer.id")
 def developerName = properties.getProperty("developer.name")
 def developerEmail = properties.getProperty("developer.email")
 
 def bintrayUser = properties.getProperty("bintray.user")
-def bintrayApikey = properties.getProperty("bintray.apikey")
+def bintrayApiKey = properties.getProperty("bintray.apikey")
+def bintrayGpgPwd = properties.getProperty("bintray.gpg.password")
 
 group = projectGroupId
 version = projectVersionName
@@ -40,7 +41,6 @@ install {
             name projectName
             description projectDescription
             url projectSiteUrl
-            inceptionYear '2016'
 
             groupId projectGroupId
             artifactId projectArtifactId
@@ -50,15 +50,14 @@ install {
             // Set your license
             licenses {
                 license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
+                    name 'The GNU General Public License, Version 3'
+                    url 'http://www.gnu.org/licenses/gpl.txt'
                 }
             }
 
             developers {
                 developer {
-                    id developerId     
+                    id developerId
                     name developerName
                     email developerEmail
                 }
@@ -112,18 +111,24 @@ javadoc {  /*javadoc采用utf-8编码否则会报“GBK的不可映射字符”�
 bintray {
     user = bintrayUser
     key = bintrayApiKey
-
     configurations = ['archives']
 
-    dryRun = false
     publish = true
 
     pkg {
-        repo = "AndroidLearnMaven"    //填写你在bintray上自己创建的Repository的名称
-        name = projectName   
+        userOrg=userGroup
+        repo = "maven"
+        name = projectName
         websiteUrl = projectSiteUrl
         vcsUrl = projectGitUrl
-        licenses = ['Apache-2.0']
         publicDownloadNumbers = true
+        licenses = ["GPL-3.0"]
+        publish = true
+        version {
+            gpg {
+                sign = true //Determines whether to GPG sign the files. The default is false
+                passphrase = bintrayGpgPwd //Optional. The passphrase for GPG signing'
+            }
+        }
     }
 }

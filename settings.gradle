@@ -1,1 +1,1 @@
-include ':bladea', ':bladeatest'
+include ':bladea'
