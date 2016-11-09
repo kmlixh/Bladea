@@ -32,8 +32,6 @@ class SqliteEngine {
             result = statement.executeUpdateDelete();
         } catch (Exception e) {
             throw new DaoException(e.getMessage());
-        } finally {
-            dbHelper.close();
         }
         return result;
     }
@@ -48,8 +46,6 @@ class SqliteEngine {
             result = statement.simpleQueryForLong();
         } catch (Exception e) {
             throw new DaoException(e.getMessage());
-        } finally {
-            dbHelper.close();
         }
         return result;
     }
@@ -70,7 +66,6 @@ class SqliteEngine {
             throw e;
         } finally {
             database.endTransaction();
-            dbHelper.close();
         }
         return count;
     }
@@ -83,8 +78,6 @@ class SqliteEngine {
             statement.execute();
         } catch (Exception e) {
             throw new DaoException(e.getMessage());
-        } finally {
-            dbHelper.close();
         }
     }
 
@@ -103,7 +96,6 @@ class SqliteEngine {
             throw e;
         } finally {
             database.endTransaction();
-            dbHelper.close();
         }
     }
 
@@ -123,8 +115,6 @@ class SqliteEngine {
 
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            dbHelper.close();
         }
         return result;
     }
@@ -147,8 +137,6 @@ class SqliteEngine {
             cursor.close();
         } catch (Exception e) {
             throw e;
-        } finally {
-            dbHelper.close();
         }
         return tlist;
     }
