@@ -107,7 +107,7 @@ public class SqlFactory {
     }
 
     protected static <T> StringBuilder getDelete(TableModule tableModule) throws Exception {
-        return getDelete(tableModule, Condition.Where());
+        return getDelete(tableModule, Condition.getPrimaryCondition(tableModule));
     }
 
     protected static <T> StringBuilder getDelete(TableModule tableModule, Condition condition) throws Exception {

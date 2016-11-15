@@ -44,6 +44,9 @@ public class TableModule<T> {
         boundClass=tClass;
         init();
     }
+    public T getBoundValue(){
+        return boundValue;
+    }
     public TableModule(T t) throws Exception {
         boundValue=t;
         boundClass= (Class<T>) t.getClass();

@@ -108,7 +108,20 @@ public class Condition {
             CellModule primary = module.getPrimaryCell();
             return Condition.Where(primary.getCellName(), "=",value);
         } else {
-            return null;
+            return Where();
+        }
+    }
+    public static Condition getPrimaryCondition(TableModule module){
+        if(module.getPrimaryCell()!=null){
+            if(module.getBoundValue()!=null){
+                Object value=module.getPrimaryCell().getFieldValue(module.getBoundValue());
+                return getPrimaryCondition(module,value);
+            }else{
+                return Where();
+            }
+
+        }else{
+            return Where();
         }
     }
 
