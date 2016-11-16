@@ -343,7 +343,7 @@ public class Dao {
         try{
             TableModule module=getTableModule(tClass);
             Condition condition=Condition.getPrimaryCondition(module,id);
-            return delete(module,condition);
+            return delete(tClass,condition);
         }catch (Exception e){
             e.printStackTrace();
             return -1;
@@ -353,26 +353,17 @@ public class Dao {
         try{
             TableModule module=getTableModule(tClass);
             Condition condition=Condition.getPrimaryCondition(module,id);
-            return delete(module,condition);
+            return delete(tClass,condition);
         }catch (Exception e){
             e.printStackTrace();
             return -1;
         }
     }
-    public int delete(TableModule module, Condition condition){
+    public int delete(Class tClass, Condition condition){
 
         try{
+            TableModule module=getTableModule(tClass);
             StringBuilder sb = SqlFactory.getDelete(module, condition);
-            return sqliteEngine.Merge(module, sb);
-        }catch (Exception e){
-            e.printStackTrace();
-            return -1;
-        }
-    }
-
-    public <T> int delete(TableModule module) {
-        try{
-            StringBuilder sb = SqlFactory.getDelete(module);
             return sqliteEngine.Merge(module, sb);
         }catch (Exception e){
             e.printStackTrace();
